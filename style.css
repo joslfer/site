@@ -100,46 +100,42 @@ a {
 
 
 
-/* Navbar */
-.navbar {
+/* Falsenavbar */
+
+.simple-header {
   max-width: 60ch;
-  margin: 0 auto;
-  display: flex;
   padding: 0.5rem 1rem;
   background-color: #faf9f6;
-  font-size: 0.9rem;
-  color: #525252;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-}
-
-.navbar-left {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #525252;
-  text-decoration: none;
-  flex-grow: 1;         /* ocupa todo el espacio disponible a la izquierda */
-}
-
-.navbar-right {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
 }
 
-.navbar-right li {
-  margin-left: 1.5rem;
+.simple-header-container {
+  display: flex;
+  justify-content: flex-end;
 }
 
-.navbar-right a {
+.simple-header a {
   color: #525252;
   text-decoration: none;
-  font-weight: 400;
-  transition: color 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.navbar-right a:hover {
-  color: #777;
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .simple-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .simple-header a {
+    font-size: 1rem;
+  }
+
+  body {
+    padding: 0 1rem;
+  }
 }
