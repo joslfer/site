@@ -79,11 +79,6 @@ ul.posts {
   background: linear-gradient(to bottom, #e3f2fd, #ffffff); /* Gradiente azul claro */
 }
 
-.posts li {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 
 /* General */
