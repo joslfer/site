@@ -8,6 +8,10 @@ body {
   background: #faf9f6;
 }
 
+.sitetitle {
+  white-space: nowrap;
+}
+
 .logocontainer {
   display: flex;
   justify-content: center;
@@ -19,18 +23,18 @@ img {
 }
 
 .logo {
-    width: 3.5em;
-    height: auto;
+  width: 3.5em;
+  height: auto;
 }
 
 .symbolcontainer {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .symbol {
-    font-size: 2em;
-    margin: 0;
+  font-size: 2em;
+  margin: 0;
 }
 
 .separator {
