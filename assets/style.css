@@ -49,20 +49,24 @@ ul {
 }
 
 .postcontainer {
-    display: flex;
-    align-content: left;
-    gap: 1.5rem;
-    
+  display: flex;
+  align-content: left;
+  gap: 1.5rem;
 }
 
 ul.posts li {
   line-height: 1.5;
 }
 
+.gradient {
+  background: linear-gradient(to right, #d6f1ff, #faf9f6);
+}
 
-ul.posts {
+ul.postlist {
     list-style-type: none;
-    padding: 0;
+    padding-left: 4px;
+    margin: 0;
+  
 }
 
 /* General */
@@ -76,8 +80,17 @@ a {
     color: #253E80;
 }
 
-/* Falsenavbar */
-
+/* Gradiente de Posts */
+.post {
+  display: flex;
+  flex-direction: column;
+}
+.postdate {
+  font-size: 0.8125em;
+}
+.postcontainer {
+  border-left: #3182ce solid 4px;
+}
 
 /* Responsive */
 
