@@ -1,4 +1,4 @@
-body {
+/* body {
   max-width: 640px;
   margin: 0 auto;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -67,22 +67,65 @@ ul.posts {
 
 /* General */
 
-p {
+/* p {
     font-size: 1rem;
     line-height: 1.5;
 }
 
 a {
     color: #253E80;
-}
+} */
 
 /* Falsenavbar */
 
 
 /* Responsive */
-
+/* 
 @media screen and (max-width: 640px) {
   body {
     padding: 0 5%;
   }
+}
+ */ 
+
+/* Estilo base centrado, legible en todos los dispositivos */
+body {
+  max-width: 640px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  background-color: #faf9f6;
+  color: black;
+}
+
+/* Imágenes que se adaptan al contenedor */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* En móviles: un poco de espacio a los lados */
+@media screen and (max-width: 640px) {
+  body {
+    padding: 0 5%;
+  }
+}
+
+/* Encabezados */
+h1 {
+  font-size: 2.5em;
+}
+h2 {
+  font-size: 1.2em;
+}
+p {
+  font-size: 1.03em;
+}
+
+/* Centrado de contenido */
+.aligncenter {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
