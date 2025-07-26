@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asteroide más cercano</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="snavbar">
+
+        <div class="snavbar-left">
+
+        <div class="snavbarname"><a href=../index.html >José Luengo Fernández</a></div>
+
+        </div>
+
+        <div class="snavbar-right">
+
+        <div> <img src="" alt=""></div>
+
+    <div> <a href=../index.html>◁ Volver</a></div>
+
+</div>
+
+</div>
+
+  <h1>Script que calcula el asteroide más cercano</h1>
+
+  <div id="asteroid-info">Cargando el asteroide más cercano…</div>
+
+  <p>Este script está conectado a la API de la NASA NEO (Near Earth Object). De los asteroides que pasan por la Tierra, coge el más cercano y muestra el nombre, la velocidad y la distancia. Funciona en tiempo real.</p>
+
+  <p>Para usarlo hace falta generar una clave API personal, que se puede hacer en el 
+    <a href="https://api.nasa.gov" target="_blank" rel="noopener">portal de APIs de la NASA</a>.
+  </p>
+
+  <p>Aquí está el código que lo hace funcionar:</p>
+
+  <pre><code>
+&lt;div id="asteroid-info"&gt;Cargando el asteroide más cercano…&lt;/div&gt;
+
+&lt;script&gt;
+  document.addEventListener("DOMContentLoaded", function() {
+    const apiKey = 'TU_API_KEY';
+    const url = `https://api.nasa.gov/neo/rest/v1/feed?api_key=${apiKey}`;
+
+    fetch(url)
+      .then(response =&gt; response.json())
+      .then(data =&gt; {
+        const container = document.getElementById("asteroid-info");
+        const today = new Date().toISOString().split('T')[0];
+        const asteroidsToday = data.near_earth_objects[today];
+        if (!asteroidsToday || asteroidsToday.length === 0) {
+          container.innerText = "No hay asteroides cercanos hoy.";
+          return;
+        }
+
+        let closest = asteroidsToday.reduce((prev, curr) =&gt; {
+          const prevDist = parseFloat(prev.close_approach_data[0].miss_distance.kilometers);
+          const currDist = parseFloat(curr.close_approach_data[0].miss_distance.kilometers);
+          return (currDist &lt; prevDist) ? curr : prev;
+        });
+
+        const name = closest.name || 'Nombre no disponible';
+        const distance = parseFloat(closest.close_approach_data[0].miss_distance.kilometers).toFixed(0);
+        const velocity = parseFloat(closest.close_approach_data[0].relative_velocity.kilometers_per_hour).toFixed(0);
+
+        const distanceFormatted = Number(distance).toLocaleString('es-ES');
+        const velocityFormatted = Number(velocity).toLocaleString('es-ES');
+
+        container.innerHTML = `
+          &lt;div&gt;
+            &lt;p&gt;&lt;strong&gt;Asteroide más cercano:&lt;/strong&gt;&lt;/p&gt;
+            &lt;p&gt;&lt;em&gt;${name}&lt;/em&gt;&lt;/p&gt;
+            &lt;p&gt;Distancia: ${distanceFormatted} km&lt;/p&gt;
+            &lt;p&gt;Velocidad: ${velocityFormatted} km/h&lt;/p&gt;
+          &lt;/div&gt;
+        `;
+      })
+      .catch(() =&gt; {
+        document.getElementById("asteroid-info").innerText = "Error al obtener datos de asteroides.";
+      });
+  });
+&lt;/script&gt;
+  </code></pre>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const apiKey = 'YsBGQofMzN1hu4HhzEiub3jqhgNwK35Wcvd8UxPh';
+      const url = `https://api.nasa.gov/neo/rest/v1/feed?api_key=${apiKey}`;
+      const imgSrc = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Asteroid_icon.svg/120px-Asteroid_icon.svg.png';
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById("asteroid-info");
+          const today = new Date().toISOString().split('T')[0];
+          const asteroidsToday = data.near_earth_objects[today];
+          if (!asteroidsToday || asteroidsToday.length === 0) {
+            container.innerText = "No hay asteroides cercanos hoy.";
+            return;
+          }
+
+          let closest = asteroidsToday.reduce((prev, curr) => {
+            const prevDist = parseFloat(prev.close_approach_data[0].miss_distance.kilometers);
+            const currDist = parseFloat(curr.close_approach_data[0].miss_distance.kilometers);
+            return (currDist < prevDist) ? curr : prev;
+          });
+
+          const name = closest.name || 'Nombre no disponible';
+          const distance = parseFloat(closest.close_approach_data[0].miss_distance.kilometers).toFixed(0);
+          const velocity = parseFloat(closest.close_approach_data[0].relative_velocity.kilometers_per_hour).toFixed(0);
+
+          const distanceFormatted = Number(distance).toLocaleString('es-ES');
+          const velocityFormatted = Number(velocity).toLocaleString('es-ES');
+
+          container.innerHTML = `
+            <div>
+              <p><strong>Asteroide más cercano:</strong></p>
+              <p><em>${name}</em></p>
+              <p>Distancia: ${distanceFormatted} km</p>
+              <p>Velocidad: ${velocityFormatted} km/h</p>
+            </div>
+          `;
+        })
+        .catch(() => {
+          document.getElementById("asteroid-info").innerText = "Error al obtener datos de asteroides.";
+        });
+    });
+  </script>
+
+</body>
+</html>

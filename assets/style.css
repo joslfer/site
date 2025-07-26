@@ -5,8 +5,10 @@ body {
   line-height: 1.7;
   font-size: 1em;
   color: #2f2f2f;
-  background: #faf9f6;
+  background: #efece2; 
 }
+
+/* faf9f6 */
 
 .sitetitle {
   white-space: nowrap;
@@ -64,7 +66,7 @@ ul.posts li {
 }
 
 .gradient {
-  background: linear-gradient(to right, #d6f1ff, #faf9f6);
+  background: linear-gradient(to right, #d6f1ff, transparent);
 }
 
 ul.postlist {
@@ -72,6 +74,20 @@ ul.postlist {
   padding-left: 4px;
   margin: 0;
   
+}
+
+.postcontainerdescription {
+  margin-top: 2em;
+
+}
+
+.links-top {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 2em;
+  list-style-type: none;
 }
 
 /* General */
@@ -90,6 +106,13 @@ h1 {
 }
 
 /* Gradiente de Posts */
+
+.postcontainerdescription {
+  margin: 0.5em;
+  justify-self: center;
+  font-style: italic;
+}
+
 .post {
   display: flex;
   flex-direction: column;
@@ -154,3 +177,36 @@ h1 {
 }
   
 */
+
+
+
+/* Shadow generator */
+
+.shadow {
+  box-shadow: var(--shadow-elevation-high);
+  padding: 0.5em;
+  border-radius: 0.5em;
+}
+
+
+:root {
+  --shadow-color: 0deg 0% 0%;
+  --shadow-elevation-low:
+    0px 0.1px 0.1px hsl(var(--shadow-color) / 0.1),
+    0px 0.2px 0.2px -1.2px hsl(var(--shadow-color) / 0.1),
+    0px 0.5px 0.6px -2.5px hsl(var(--shadow-color) / 0.1);
+  --shadow-elevation-medium:
+    0px 0.1px 0.1px hsl(var(--shadow-color) / 0.11),
+    0px 0.4px 0.5px -0.8px hsl(var(--shadow-color) / 0.11),
+    0.1px 1.1px 1.2px -1.7px hsl(var(--shadow-color) / 0.11),
+    0.2px 2.6px 2.9px -2.5px hsl(var(--shadow-color) / 0.11);
+  --shadow-elevation-high:
+    0px 0.1px 0.1px hsl(var(--shadow-color) / 0.1),
+    0.1px 0.8px 0.9px -0.4px hsl(var(--shadow-color) / 0.1),
+    0.1px 1.4px 1.6px -0.7px hsl(var(--shadow-color) / 0.1),
+    0.2px 2.3px 2.6px -1.1px hsl(var(--shadow-color) / 0.1),
+    0.3px 3.7px 4.2px -1.4px hsl(var(--shadow-color) / 0.1),
+    0.4px 5.8px 6.5px -1.8px hsl(var(--shadow-color) / 0.1),
+    0.6px 8.9px 10px -2.1px hsl(var(--shadow-color) / 0.1),
+    0.9px 13.1px 14.8px -2.5px hsl(var(--shadow-color) / 0.1);
+}
