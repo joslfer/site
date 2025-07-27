@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Asteroide más cercano</title>
-  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../../assets/style.css">
 </head>
 <body>
     <div class="snavbar">
 
         <div class="snavbar-left">
 
-        <div class="snavbarname"><a href=../index.html >José Luengo Fernández</a></div>
+        <div class="snavbarname"><a href="../../index.html">José Luengo Fernández</a></div>
 
         </div>
 
@@ -19,7 +19,7 @@
 
         <div> <img src="" alt=""></div>
 
-    <div> <a href=../index.html>◁ Volver</a></div>
+    <div> <a href="../../index.html">◁ Volver</a></div>
 
 </div>
 
@@ -28,8 +28,8 @@
   <h1>Script que calcula el asteroide más cercano</h1>
 
   <div id="asteroid-info">Cargando el asteroide más cercano…</div>
-
-  <p>Este script está conectado a la API de la NASA NEO (Near Earth Object). De los asteroides que pasan por la Tierra, coge el más cercano y muestra el nombre, la velocidad y la distancia. Funciona en tiempo real.</p>
+  
+  <p class="despuesdelasteroide">Este script está conectado a la API de la NASA NEO (Near Earth Object). De los asteroides que pasan por la Tierra, coge el más cercano y muestra el nombre, la velocidad y la distancia. Funciona en tiempo real.</p>
 
   <p>Para usarlo hace falta generar una clave API personal, que se puede hacer en el 
     <a href="https://api.nasa.gov" target="_blank" rel="noopener">portal de APIs de la NASA</a>.
@@ -116,11 +116,18 @@
           const velocityFormatted = Number(velocity).toLocaleString('es-ES');
 
           container.innerHTML = `
-            <div>
-              <p><strong>Asteroide más cercano:</strong></p>
-              <p><em>${name}</em></p>
-              <p>Distancia: ${distanceFormatted} km</p>
-              <p>Velocidad: ${velocityFormatted} km/h</p>
+            <div class=asteroidcontainer>
+              <div class=asteroiddata> 
+                <p class=as1><strong>Asteroide más cercano:</strong></p>
+                <p class=asteroidname><em>${name}</em></p>
+                <p class=as2>Distancia: ${distanceFormatted} km</p>
+                <p class=as3>Velocidad: ${velocityFormatted} km/h</p>
+              </div>
+              
+              <div class=asteroidphotocontainer>
+                <img class=asteroidphoto src="https://joslfer.es/wp-content/uploads/2025/07/depositphotos_199944766-stock-photo-dark-rock-asteroid-isolated-white.webp" alt="Descripción de la imagen">
+              <div>
+              
             </div>
           `;
         })
