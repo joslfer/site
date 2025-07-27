@@ -165,22 +165,6 @@ h1 {
   color: inherit;
 }
 
-/* 
-
-.texto-gradiente {
-  background: linear-gradient(to right, red, orange, yellow);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-} 
-  .hr-gradiente {
-  border: none;
-  height: 4px;
-  background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-}
-  
-*/
-
-
 pre {
   background-color: #b2b2b2;
   padding: 1em;
