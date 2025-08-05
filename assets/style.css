@@ -67,7 +67,7 @@ ul.posts li {
 }
 
 .gradient {
-  background: linear-gradient(to right, #d6f1ff, transparent);
+  background: linear-gradient(to right, #E4E5F0, transparent);
 }
 
 /* #d6f1ff */
@@ -120,7 +120,7 @@ h1 {
   font-size: 0.8125em;
 }
 .postcontainer {
-  border-left: #3182ce solid 4px;
+  border-left: #253E80 solid 4px;
 }
 
 /* Responsive */
