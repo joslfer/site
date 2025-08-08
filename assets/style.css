@@ -8,7 +8,7 @@ body {
   background: #efece2; 
 }
 
-/* faf9f6 */
+/* faf9f6  #efece2 */
 
 .sitetitle {
   white-space: nowrap;
@@ -67,7 +67,8 @@ ul.posts li {
 }
 
 .gradient {
-  background: linear-gradient(to right, #e9decb, transparent);
+  background: linear-gradient(to right, #e9decb
+  , transparent);
 }
 
 /* #d6f1ff */
@@ -120,7 +121,8 @@ h1 {
   font-size: 0.8125em;
 }
 .postcontainer {
-  border-left: #715b45 solid 4px;
+  border-left: #725b45 solid 4px;
+  border-radius: 3px;
 }
 
 /* Responsive */
