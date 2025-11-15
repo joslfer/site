@@ -11,16 +11,32 @@
 </head>
 <body>
   <h1 class="sitetitle">José Luengo Fernández</h1>
-  <!-- <hr>
-  <div class="logocontainer">
-  <img src="./img/logo.png" alt="Logo" class="logo"/>
-  </div> -->
   <hr>
   <p class="sitedescription">Esta es mi página web. Hay enlaces y algunas páginas. También puedes encontrar mi <a href="https://josluengofernndez.substack.com/">substack</a> donde a veces escribo cosas. Ahora me sirve principalmente para aprender un poco de HTML y CSS básico. </p>
   <p class="sitedescription">“In any creative project, you can’t imagine what the end is going to be, unless it is a very small thing you’re doing.”   
   —Robert Pirsig</p>
+  <p> Solo me ocupo de esto cada mucho tiempo, para esto está la cuenta de abajo.</p>
+  <div>
+    <p id="dias-sin-actualizar"></p>
+
+      <script>
+        const ultimaActualizacion = new Date("2025-08-01");
+          // YYYY-MM-DD
+        const hoy = new Date();
+        const msPorDia = 1000 * 60 * 60 * 24;
+        const dias = Math.floor((hoy - ultimaActualizacion) / msPorDia);
+
+        const p = document.getElementById("dias-sin-actualizar");
+
+        p.innerHTML = `Días sin actualizar: <span id="numero-dias">${dias}</span>`;
+        if (dias >= 60) {
+            const num = document.getElementById("numero-dias");
+            num.style.color = "#8B0000";   
+        }
+      </script>
   </div>
-    <hr>
+  <hr>
+  <!-- <p style="color:#8B0000">567</p> -->
   <p class="postcontainerdescription">Entradas de recientes a antiguas</p>
 <div class="postcontainer">
   <div class="gradient">
@@ -75,7 +91,8 @@
   </div>
   <hr>
   <div class="symbolcontainer">
-  <p class="symbol">-⚇-</p>  </div>
+    <p class="symbol">-⚇-</p> 
+  </div>
 </body>
 </html>
 

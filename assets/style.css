@@ -34,6 +34,7 @@ img {
 .symbolcontainer {
   display: flex;
   justify-content: center;
+  flex-direction: row;
 }
 
 .symbol {
