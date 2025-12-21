@@ -305,3 +305,41 @@ pre {
   gap: 1em;
 }
 
+blockquote {
+  border-left: 4px solid black; /* grosor y color de la raya */
+  padding-left: 12px;           /* espacio entre raya y texto */
+  margin-left: 0;               /* opcional, para alinearlo con el resto */
+  color: #333;                  /* color del texto */
+  font-style: italic;           /* opcional, estilo Substack */
+}
+
+
+.ad {
+  display: block;
+  background-color: #fffdf0;        /* amarillo muy suave */
+  border-left: 3px solid #fff3bf;   /* línea lateral pálida */
+  padding: 10px 14px;
+  margin: 16px 0;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: inherit;                   /* no rojo */
+  text-decoration: underline;       /* subrayado que indique enlace */
+  text-decoration-color: #ffed99;   /* amarillo claro para el subrayado */
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-align: center;
+}
+
+.ad:hover {
+  background-color: #fff7db;        /* ligeramente más cálido al hover */
+  text-decoration-color: #ffe28a;
+  color: inherit;
+}
+
+/* asegurar que enlaces dentro mantengan estilo discreto */
+.ad a {
+  color: inherit;
+  text-decoration: inherit;
+}
+// ...existing code...
