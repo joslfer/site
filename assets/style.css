@@ -270,7 +270,9 @@ pre {
   font-size: 23px;
   background: linear-gradient(90deg, #0d47a1, #1976d2, #42a5f5, #81d4fa);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   margin-bottom: 0.2em;
   margin-top: 0.2em;
   white-space: nowrap;
@@ -313,35 +315,43 @@ blockquote {
   font-style: italic;           /* opcional, estilo Substack */
 }
 
-
 .ad {
   display: block;
-  background-color: #fff9c4;        /* amarillo claro más visible */  /* línea lateral más intensa */
+  background-color: #fff9c4;
   padding: 10px 14px;
   margin: 16px 0;
   border-radius: 6px;
   font-weight: 600;
   font-size: 1rem;
   color: inherit;
-  text-decoration: underline;       /* subrayado que indique enlace */
-  text-decoration-color: #ffc107;   /* amarillo cálido y más presente */
+  text-decoration: underline;
+  text-decoration-color: #ffc107;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.08); /* brillo sutil amarillo */
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.08);
+  box-sizing: border-box;
 }
 
 .ad:hover {
-  background-color: #fff59d;        /* hover más cálido y visible */
+  background-color: #fff59d;
   text-decoration-color: #ffca28;
   color: inherit;
   transform: translateY(-1px);
 }
 
-/* asegurar que enlaces dentro mantengan estilo discreto */
 .ad a {
   color: inherit;
   text-decoration: inherit;
   font-weight: 700;
 }
-// ...existing code...
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 480px) {
+  .ad {
+    font-size: 0.85rem;   /* reduce el tamaño del texto */
+    white-space: nowrap;   /* mantiene todo en una línea */
+    overflow: hidden;
+    text-overflow: ellipsis; /* añade puntos suspensivos si sigue largo */
+  }
+}
