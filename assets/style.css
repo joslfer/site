@@ -316,7 +316,9 @@ blockquote {
 }
 
 .ad {
-  display: block;
+  display: flex;             /* flexible para que el contenido se ajuste */
+  justify-content: center;
+  align-items: center;
   background-color: #fff9c4;
   padding: 10px 14px;
   margin: 16px 0;
@@ -331,10 +333,11 @@ blockquote {
   text-align: center;
   box-shadow: 0 2px 8px rgba(255, 193, 7, 0.08);
   box-sizing: border-box;
-  max-width: 100%;       /* clave para iOS */
+  max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  min-width: 0;             /* crucial en Safari para permitir recorte */
 }
 
 @media (max-width: 480px) {
