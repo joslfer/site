@@ -316,30 +316,32 @@ blockquote {
 
 .ad {
   display: block;
-  background-color: #fffdf0;        /* amarillo muy suave */
-  border-left: 3px solid #fff3bf;   /* línea lateral pálida */
+  background-color: #fff9c4;        /* amarillo claro más visible */  /* línea lateral más intensa */
   padding: 10px 14px;
   margin: 16px 0;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 600;
   font-size: 1rem;
-  color: inherit;                   /* no rojo */
+  color: inherit;
   text-decoration: underline;       /* subrayado que indique enlace */
-  text-decoration-color: #ffed99;   /* amarillo claro para el subrayado */
+  text-decoration-color: #ffc107;   /* amarillo cálido y más presente */
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   text-align: center;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.08); /* brillo sutil amarillo */
 }
 
 .ad:hover {
-  background-color: #fff7db;        /* ligeramente más cálido al hover */
-  text-decoration-color: #ffe28a;
+  background-color: #fff59d;        /* hover más cálido y visible */
+  text-decoration-color: #ffca28;
   color: inherit;
+  transform: translateY(-1px);
 }
 
 /* asegurar que enlaces dentro mantengan estilo discreto */
 .ad a {
   color: inherit;
   text-decoration: inherit;
+  font-weight: 700;
 }
 // ...existing code...
