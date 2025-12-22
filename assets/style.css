@@ -331,6 +331,16 @@ blockquote {
   text-align: center;
   box-shadow: 0 2px 8px rgba(255, 193, 7, 0.08);
   box-sizing: border-box;
+  max-width: 100%;       /* clave para iOS */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .ad {
+    font-size: 0.85rem;
+  }
 }
 
 .ad:hover {
@@ -346,12 +356,3 @@ blockquote {
   font-weight: 700;
 }
 
-/* Media query para pantallas pequeñas */
-@media (max-width: 480px) {
-  .ad {
-    font-size: 0.85rem;   /* reduce el tamaño del texto */
-    white-space: nowrap;   /* mantiene todo en una línea */
-    overflow: hidden;
-    text-overflow: ellipsis; /* añade puntos suspensivos si sigue largo */
-  }
-}
