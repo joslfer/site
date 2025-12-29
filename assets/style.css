@@ -359,3 +359,18 @@ blockquote {
   font-weight: 700;
 }
 
+
+.bloque {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.bloque p {
+  flex: 1;
+}
+
+.bloque img {
+  width: 280px;   /* más grande */
+  height: auto;
+}
