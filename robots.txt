@@ -1,2 +1,9 @@
 User-agent: ia_archiver
 Disallow: /
+
+User-agent: *
+Disallow: /*.jpg
+Disallow: /*.jpeg
+Disallow: /*.png
+Disallow: /*.webp
+Disallow: /*.gif
