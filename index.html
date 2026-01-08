@@ -14,7 +14,7 @@
   <hr>
   <p class="sitedescription">Esta es mi página web. Hay enlaces y algunas páginas. También puedes encontrar mi <a href="https://acopio.substack.com/welcome">substack</a> donde a veces escribo cosas. Ahora me sirve principalmente para aprender un poco de HTML y CSS básico.</p>
   <p>Realmente no sigo ningún tema en específico. Según vea algo que me llame la atención lo pongo aquí. Si encuentras algo interesante, fenomenal.</p>
-<p>Mira mi <a href="https://joslfer.es/mural" target="_blank">mural con un poco de todo.</a></p>    
+<p>Mira mi <a href="https://joslfer.es/mural" target="_blank">mural.</a></p>    
 <div>
   <p id="dias-sin-actualizar"></p>
   <script>
@@ -25,7 +25,7 @@
 
     const p = document.getElementById("dias-sin-actualizar");
 
-    p.innerHTML = `La última vez que publiqué algo fue hace <strong id="numero-dias">${dias}</strong> días.`;
+    p.innerHTML = `La última vez que publiqué fue hace <strong id="numero-dias">${dias}</strong> días.`;
 
     if (dias >= 60) {
       const num = document.getElementById("numero-dias");
