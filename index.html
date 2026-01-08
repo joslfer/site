@@ -14,32 +14,25 @@
   <hr>
   <p class="sitedescription">Esta es mi página web. Hay enlaces y algunas páginas. También puedes encontrar mi <a href="https://acopio.substack.com/welcome">substack</a> donde a veces escribo cosas. Ahora me sirve principalmente para aprender un poco de HTML y CSS básico.</p>
   <p>Realmente no sigo ningún tema en específico. Según vea algo que me llame la atención lo pongo aquí. Si encuentras algo interesante, fenomenal.</p>
-<p>Mira mi <a href="https://joslfer.es/mural" target="_blank">mural con un poco de todo.</a></p>  
-<p> Solo me ocupo de esto cada mucho tiempo, cada vez que publico algo se pone la cuenta de abajo a cero.</p>
-  <div>
-    <p id="dias-sin-actualizar"></p>
-      <script>
-        const ultimaActualizacion = new Date("2025-12-29");
-          // YYYY-MM-DD
-        const hoy = new Date();
-        const msPorDia = 1000 * 60 * 60 * 24;
-        const dias = Math.floor((hoy - ultimaActualizacion) / msPorDia);
+<p>Mira mi <a href="https://joslfer.es/mural" target="_blank">mural con un poco de todo.</a></p>    
+<div>
+  <p id="dias-sin-actualizar"></p>
+  <script>
+    const ultimaActualizacion = new Date("2025-12-29"); // YYYY-MM-DD
+    const hoy = new Date();
+    const msPorDia = 1000 * 60 * 60 * 24;
+    const dias = Math.floor((hoy - ultimaActualizacion) / msPorDia);
 
-        const p = document.getElementById("dias-sin-actualizar");
+    const p = document.getElementById("dias-sin-actualizar");
 
-        p.innerHTML = `Días sin actualizar: <span id="numero-dias">${dias}</span>`;
-        if (dias >= 60) {
-            const num = document.getElementById("numero-dias");
-            num.style.color = "#8B0000";   
-        }
-      </script>
+    p.innerHTML = `La última vez que publiqué algo fue hace <strong id="numero-dias">${dias}</strong> días.`;
 
-  </div>
-  <div>
-      <a class="ad" href="https://acopio.substack.com/welcome" target="_blank">
-        Si quieres ver lo que voy haciendo apúntate aquí.
-      </a>
-  </div>
+    if (dias >= 60) {
+      const num = document.getElementById("numero-dias");
+      num.style.color = "#8B0000";
+    }
+  </script>
+</div>
   Últimamente estoy debatiendo con mi amigo Daniel.
   <hr>
   <!-- <p style="color:#8B0000">567</p> -->
@@ -98,7 +91,11 @@
     </ul>
   </div>
 </div>
-
+  <div>
+      <a class="ad" href="https://acopio.substack.com/welcome" target="_blank">
+        Si quieres ver lo que voy haciendo apúntate aquí.
+      </a>
+  </div>
   <ul class="links-top">
     <li><a href="./pages/links">Links</a></li>
     <li><a href="./pages/otros/">Otros</a></li>
