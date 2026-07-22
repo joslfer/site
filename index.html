@@ -31,14 +31,60 @@
     }
   </script>
 
-  <div class="info-fichafuente">
-    Ya se puede usar <a href="https://fichafuente.vercel.app" target="_blank">Fichafuente</a>, mi app para crear fichas con evidencia verificable y tener mejores debates.
-  </div>
+  <!---
+                                .;:'                 .....
+                            .lKMW:.                    :0MWk:
+                          .OMMMMk                       'MMMMW:
+                          dMMMMX                           kMMMMx
+                        lMMMMx                             OMMMMc
+                        WMMM0                              .MMMM0
+                        .MMMM;                              .MMMMK
+                        WMMM;                              xMMMMo
+                        ;MMMK                             lMMMMX
+                          ,MMMX;                         ,KMMMMo
+                            0MMMWOxxxkkOO0000000OOkkkkOKWMMMMO
+                            .MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM;
+                              NMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.
+                              NMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+                              KMMMMMMMMMMMMMMMMMMMMMMMMMMMMW
+                              xMMMMMMMMMMMMMMMMMMMMMMMMMMMMN
+                              :MMMk;...;0MMMMMMMM0;.  .:XMM0
+                              MMc       kMMMMMMK       .MMl
+                              0M.       ;MMMMMMO        WM
+                              .MO       OMMMMMMMc      xMd
+                                cMNd:;cxNMMMMMMMMMNkookWMO
+                                OokWMMMMMMMMMMMMMMMMMMMX
+                                  oxdccddxkOO00Okkc
+                                    kKl'. ..'....',
+                                  ,xd;'..'.''.';;',.
+                                    .;,,'.',.',,';ll;.
+                                    ',c:...;'.';:;;llc
+                                  .;cc'...':'.';:llcc;
+                                  ,cl'::,..,;;;'':cl:;.
+                                  cl;cc;.'...';;:,,:l:.
+                                  lccl:,c:'   .;;:c:;c'
+                                  ;ll;:lc,      ',:cl';.
+                                  :l,cc:.        .':ll',c.
+                                  ..,               ';.
   
 
+    Hmm? Ah, hello there. Come down to explore these beautiful old ruins! -Cornifer
+
+
+   -->
+
   <p>
-    Implementación de <a href="https://github.com/joslfer/metodos-numericos" target="_blank">/métodos-numéricos</a> en Python para resolver problemas de física y demás. 
+    <strong>Aprendizaje de Python, ML, modelización:</strong> RK4 para resolver integrales, descenso de gradiente, regresión logística para clasificar púlsars, teoría de juegos en redes, análisis de datos climáticos. 
+    (<a href="https://github.com/joslfer">readme</a>
+    <svg height="16" width="16" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 4px;">
+    <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    ) </li>
   </p>
+
+  <div class="info-fichafuente">
+    <a href="https://fichafuente.vercel.app" target="_blank">Fichafuente</a>, mi app para crear fichas con evidencia verificable y tener mejores debates.
+  </div>
 
   <hr>
   <!-- <p style="color:#8B0000">567</p> -->
@@ -127,10 +173,43 @@
   </div>
   <hr>
   <div class="symbolcontainer">
-    <p class="symbol">-⚇-</p> 
+      <p class="symbol">-<span class="face">⚇</span>-</p>
   </div>
-</body>
-</html>
+
+<script>
+  const eggStyle = "background: #12141c; background: linear-gradient(135deg, #0a0e1a, #1b2a4a); font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; font-size: 18px; font-weight: 600; color: #f2ede0; padding: 12px 20px; border-radius: 3px; letter-spacing: 0.5px;";
+
+  console.log("%cWhat brings you here?", eggStyle);
+
+  const hour = new Date().getHours();
+  if (hour >= 0 && hour < 5) {
+    console.log("%c¿Programando tan tarde?", eggStyle);
+  }
+</script>
+
+
+<script>
+  const logo = document.querySelector(".symbol");
+  const face = document.querySelector(".face");
+  let clickCount = 0;
+  let clickTimer;
+
+  logo.addEventListener("click", () => {
+    clickCount++;
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => (clickCount = 0), 1500);
+
+    if (clickCount === 2) {
+      face.classList.add("jumping");
+      console.log(
+        "%c🔓 Desbloqueado",
+        "font-size: 20px; font-weight: bold; color: white; background: #0d1117; padding: 8px 14px; border-radius: 6px;"
+      );
+      clickCount = 0;
+      setTimeout(() => face.classList.remove("jumping"), 600);
+    }
+  });
+</script>
 
 </body>
 </html>
