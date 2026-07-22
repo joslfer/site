@@ -1,12 +1,18 @@
 (function () {
   const hapticLabel = document.getElementById('haptic-label');
-  if (!hapticLabel) return;
 
   function triggerHaptic() {
-    hapticLabel.click();
+    // Android / navegadores con soporte estándar
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+      return;
+    }
+    // iOS Safari (17.4+)
+    if (hapticLabel) {
+      hapticLabel.click();
+    }
   }
 
-  // Delegación de eventos: funciona con links/botones actuales y futuros
   document.addEventListener('click', function (e) {
     if (e.target.closest('a, button')) {
       triggerHaptic();
