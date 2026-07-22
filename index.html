@@ -8,8 +8,13 @@
     <title>José Luengo Fernández</title>
     <link rel="stylesheet" href="./assets/style.css">
     <link rel="icon" href="./favicon.png" type="image/png">
+    <script src="haptics.js"></script>
 </head>
+
 <body>
+  <label for="haptic-switch" id="haptic-label" style="position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none;">
+  <input type="checkbox" switch id="haptic-switch" tabindex="-1">
+  </label>
   <h1 class="sitetitle">José Luengo Fernández</h1>
   <hr>
   <p>Esta es mi página web. Según tenga curiosidad por un un tema, lo pongo aquí. Para ver debates con mis amigos y cosas más cortas está <a href="https://acopio.substack.com/welcome">mi substack.</a>
@@ -206,6 +211,7 @@
     }
   });
 </script>
+<script src="haptics.js"></script>
 
 </body>
 </html>
