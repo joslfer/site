@@ -8,6 +8,10 @@ body {
   background: #efece2; 
 }
 
+
+html {
+    scrollbar-gutter: stable;
+}
 /* faf9f6  #efece2 */
 
 .sitetitle {
