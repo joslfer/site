@@ -52,19 +52,23 @@
   const SUAVIZADO_LUZ = 0.22;
 
 
-  // ───────── Control de fecha ─────────
+// ───────── Control de fecha ─────────
 
-  const hoy = new Date();
+const hoy = new Date();
 
-  const esHalloween =
-    hoy.getMonth() === 9 &&
-    hoy.getDate() === 31;
+const mes = hoy.getMonth();
+const dia = hoy.getDate();
 
-  if (!FORZAR && !esHalloween) return;
+const esHalloween =
+  mes === 9 &&
+  dia >= 29 &&
+  dia <= 31;
+
+if (!FORZAR && !esHalloween) return;
 
 
-  const reducir =
-    window.matchMedia(
+const reducir =
+  window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
