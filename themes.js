@@ -3,38 +3,54 @@
   // ───────── Configuración ─────────
 
   // true = se muestra siempre
-  // false = solo el 31 de octubre
+  // false = solo del 29 al 31 de octubre
   const FORZAR = false;
 
-  // 'vineta'   = pantalla oscura azulada, más por los laterales
-  // 'linterna' = oscuridad total con un círculo de luz alrededor del cursor
-  // 'ninguna'  = sin oscuridad ni nubes
-  const MODO_OSCURIDAD = 'vineta';
+  // ───────── Aura (zona alrededor del fantasma) ─────────
 
-  // ───────── Oscuridad ─────────
+  // Anchura máxima del aura en píxeles
+  const TAMANO_AURA = 760;
 
-  const COLOR_OSCURIDAD = '2, 6, 20';
-  const OSCURIDAD_LATERAL = 0.9;
-  const ANCHO_LATERAL = 0.42;
-  const OSCURIDAD_ESQUINAS = 0.65;
-  const OSCURIDAD_GENERAL = 0.20;
+  // Cuánto más ancha que alta es el aura (1 = redonda, 1.5 = bastante achatada)
+  const ASPECTO_AURA = 1.5;
 
-  // ───────── Nubes / niebla ─────────
+  // Cuánto se deforma el contorno:
+  // 0 = elipse perfecta, 0.5 = bastante irregular, 0.8 = muy retorcido
+  const IRREGULARIDAD = 0.6;
 
+  // Balanceo lento de las formas: grados a cada lado y segundos por ciclo
+  const BALANCEO = 14;
+  const SEG_BALANCEO_OSCURIDAD = 37;
+  const SEG_BALANCEO_NUBES = 29;
+
+  // El contorno se expande y se encoge suavemente
+  const RESPIRACION = true;
+
+  // Resolución interna de las formas (más alto = más suave, más lento al cargar)
+  const RESOLUCION_AURA = 240;
+
+  // Oscuridad alrededor del fantasma
+  const OSCURIDAD = true;
+  const COLOR_OSCURIDAD = [2, 6, 20];
+  const OSCURIDAD_CENTRO = 0.45;   // justo detrás del fantasma
+  const OSCURIDAD_ANILLO = 0.8;    // zona más oscura, alrededor
+  const POSICION_ANILLO = 30;      // % del radio donde está lo más oscuro
+
+  // Nubes / niebla alrededor del fantasma
   const NUBES = true;
+  const INTENSIDAD_NUBES = 0.8;
+  const NUCLEO_NUBES = 35;         // % del radio donde las nubes empiezan a difuminarse
 
-  const INTENSIDAD_NUBES = 0.45;
-  const ALTURA_NUBES = 0.38;
+  // Estirado vertical del ruido de las nubes:
+  // 1 = celdas cuadradas, 2 = vetas muy horizontales, <1 = más verticales
+  const ESTIRADO_NUBES = 1.8;
 
-  const LUNA = true;
-
-  // Niebla en la parte inferior
-  const NUBES_ABAJO = true;
-  const INTENSIDAD_NUBES_ABAJO = 0.35;
-  const ALTURA_NUBES_ABAJO = 0.25;
-
-  // Relámpagos
+  // Rayos dentro del aura
   const RELAMPAGOS = true;
+  const RAYOS_MIN_MS = 2200;       // tiempo mínimo entre tormentas
+  const RAYOS_MAX_MS = 7000;       // tiempo máximo entre tormentas
+  const COLOR_RAYO = '#cfe0ff';    // núcleo del rayo
+  const COLOR_BRILLO_RAYO = '#6f95ff'; // resplandor del rayo
 
 
   // ───────── Fantasma ─────────
@@ -48,104 +64,240 @@
 
   const RADIO_HUIDA = 150;
 
-  const RADIO_LUZ = 140;
-  const SUAVIZADO_LUZ = 0.22;
+
+  // ───────── Control de fecha ─────────
+
+  const hoy = new Date();
+
+  const mes = hoy.getMonth();
+  const dia = hoy.getDate();
+
+  const esHalloween =
+    mes === 9 &&
+    dia >= 29 &&
+    dia <= 31;
+
+  if (!FORZAR && !esHalloween) return;
 
 
-// ───────── Control de fecha ─────────
-
-const hoy = new Date();
-
-const mes = hoy.getMonth();
-const dia = hoy.getDate();
-
-const esHalloween =
-  mes === 9 &&
-  dia >= 29 &&
-  dia <= 31;
-
-if (!FORZAR && !esHalloween) return;
-
-
-const reducir =
-  window.matchMedia(
+  const reducir =
+    window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
 
-  // ───────── Viñeta ─────────
+  // ───────── Ayudas matemáticas ─────────
 
-  function sombraLateral(direccion) {
+  const sua = (t) => t * t * (3 - 2 * t);
 
-    const pasos = 14;
-    const paradas = [];
+  const acotar = (v, min, max) =>
+    Math.max(min, Math.min(max, v));
 
-    for (let i = 0; i <= pasos; i++) {
 
-      const t = i / pasos;
+  // ───────── Ruido de valor (fractal) ─────────
 
-      const alfa =
-        OSCURIDAD_LATERAL *
-        Math.pow(1 - t, 2.4);
+  function crearRuido(semilla, octavas, base) {
 
-      paradas.push(
-        `rgba(${COLOR_OSCURIDAD},${alfa.toFixed(3)}) ${(t * ANCHO_LATERAL * 100).toFixed(1)}%`
-      );
+    let s = semilla >>> 0;
 
+    const azar = () => {
+
+      s =
+        (Math.imul(s, 1664525) + 1013904223)
+        >>> 0;
+
+      return s / 4294967296;
+    };
+
+
+    const redes = [];
+
+    for (let o = 0; o < octavas; o++) {
+
+      const n = base * (1 << o);
+
+      const datos =
+        new Float32Array((n + 1) * (n + 1));
+
+      for (let i = 0; i < datos.length; i++) {
+        datos[i] = azar();
+      }
+
+      redes.push({ n, datos });
     }
 
-    return `linear-gradient(${direccion}, ${paradas.join(', ')})`;
+
+    // x, y en [0, 1]  →  devuelve ~[0, 1]
+    return (x, y) => {
+
+      let suma = 0;
+      let amp = 0.5;
+      let total = 0;
+
+      for (const red of redes) {
+
+        const u = x * red.n;
+        const v = y * red.n;
+
+        const ix = Math.min(Math.floor(u), red.n - 1);
+        const iy = Math.min(Math.floor(v), red.n - 1);
+
+        const fx = sua(u - ix);
+        const fy = sua(v - iy);
+
+        const w = red.n + 1;
+
+        const a = red.datos[iy * w + ix];
+        const b = red.datos[iy * w + ix + 1];
+        const c = red.datos[(iy + 1) * w + ix];
+        const d = red.datos[(iy + 1) * w + ix + 1];
+
+        suma +=
+          (
+            (a + (b - a) * fx) * (1 - fy) +
+            (c + (d - c) * fx) * fy
+          ) * amp;
+
+        total += amp;
+
+        amp *= 0.5;
+      }
+
+      return suma / total;
+    };
   }
 
 
-  function sombraEsquinas() {
+  // ───────── Forma irregular del aura ─────────
+  // Genera una imagen cuadrada cuyo canal alfa tiene un contorno
+  // deformado por ruido, con un perfil de intensidad radial.
+  // El contorno base es una elipse más ancha que alta.
 
-    const pasos = 12;
+  function generarAura(semilla, tam, color, perfil) {
 
-    const paradas = [
-      `rgba(${COLOR_OSCURIDAD},0) 0%`,
-      `rgba(${COLOR_OSCURIDAD},0) 50%`
-    ];
+    const ruido = crearRuido(semilla, 5, 3);
+    const fino = crearRuido(semilla + 101, 4, 6);
 
-    for (let i = 1; i <= pasos; i++) {
+    const canvas =
+      document.createElement('canvas');
 
-      const t = i / pasos;
+    canvas.width = tam;
+    canvas.height = tam;
 
-      const alfa =
-        OSCURIDAD_ESQUINAS *
-        Math.pow(t, 2);
+    const ctx = canvas.getContext('2d');
 
-      paradas.push(
-        `rgba(${COLOR_OSCURIDAD},${alfa.toFixed(3)}) ${(50 + 50 * t).toFixed(1)}%`
-      );
+    const imagen = ctx.createImageData(tam, tam);
 
+    const datos = imagen.data;
+
+
+    for (let py = 0; py < tam; py++) {
+
+      const y = (py + 0.5) / tam;
+
+      for (let px = 0; px < tam; px++) {
+
+        const x = (px + 0.5) / tam;
+
+        // Distancia elíptica: el eje vertical "cuenta" más
+        const d =
+          Math.hypot(
+            (x - 0.5) * 2,
+            (y - 0.5) * 2 * ASPECTO_AURA
+          );
+
+        if (d >= 1) continue;
+
+
+        // Radio local: varía según la dirección
+        const n = ruido(x, y);
+
+        const nn = acotar((n - 0.3) / 0.4, 0, 1);
+
+        const radioLocal =
+          1 - IRREGULARIDAD * (1 - nn);
+
+        const de = d / radioLocal;
+
+
+        let a = perfil(de);
+
+        // Textura fina: zonas más ralas y más densas
+        a *= acotar(0.55 + 0.9 * fino(x, y), 0.3, 1);
+
+        // Garantiza que nunca se corte en el borde de la imagen
+        a *= 1 - sua(acotar((d - 0.85) / 0.15, 0, 1));
+
+
+        const i = (py * tam + px) * 4;
+
+        datos[i] = color[0];
+        datos[i + 1] = color[1];
+        datos[i + 2] = color[2];
+        datos[i + 3] = acotar(a, 0, 1) * 255;
+      }
     }
 
-    return `radial-gradient(ellipse farthest-corner at 50% 50%, ${paradas.join(', ')})`;
+
+    ctx.putImageData(imagen, 0, 0);
+
+    return canvas;
   }
 
 
-  const fondoOscuridad =
-    MODO_OSCURIDAD === 'linterna'
+  // Perfiles de intensidad según la distancia local (0 = centro, 1 = borde)
 
-      ? `radial-gradient(
-          circle var(--hw-r, ${RADIO_LUZ}px)
-          at var(--hw-x, 50%) var(--hw-y, 50%),
-          rgba(${COLOR_OSCURIDAD}, 0) 0%,
-          rgba(${COLOR_OSCURIDAD}, 0) 35%,
-          rgba(${COLOR_OSCURIDAD}, 0.6) 60%,
-          rgba(${COLOR_OSCURIDAD}, 0.985) 100%
-        )`
+  function perfilOscuridad(de) {
 
-      : `${sombraLateral('90deg')},
-         ${sombraLateral('270deg')},
-         ${sombraEsquinas()}`;
+    if (de >= 1) return 0;
+
+    const p = POSICION_ANILLO / 100;
+
+    if (de < p) {
+
+      return (
+        OSCURIDAD_CENTRO +
+        (OSCURIDAD_ANILLO - OSCURIDAD_CENTRO) *
+        sua(de / p)
+      );
+    }
+
+    return OSCURIDAD_ANILLO * (1 - sua((de - p) / (1 - p)));
+  }
 
 
-  const colorVelo =
-    MODO_OSCURIDAD === 'vineta'
-      ? `rgba(${COLOR_OSCURIDAD}, ${OSCURIDAD_GENERAL})`
-      : 'transparent';
+  function perfilMascara(de) {
+
+    const nucleo = NUCLEO_NUBES / 100;
+
+    if (de >= 1) return 0;
+
+    if (de <= nucleo) return 1;
+
+    return 1 - sua((de - nucleo) / (1 - nucleo));
+  }
+
+
+  const urlOscuridad =
+    OSCURIDAD
+      ? generarAura(
+          11,
+          RESOLUCION_AURA,
+          COLOR_OSCURIDAD,
+          perfilOscuridad
+        ).toDataURL('image/png')
+      : '';
+
+
+  const urlMascara =
+    NUBES
+      ? generarAura(
+          37,
+          RESOLUCION_AURA,
+          [0, 0, 0],
+          perfilMascara
+        ).toDataURL('image/png')
+      : '';
 
 
   // ───────── Generación de nubes ─────────
@@ -177,25 +329,19 @@ const reducir =
 
     for (let o = 0; o < OCTAVAS; o++) {
 
+      // Más celdas en vertical que en horizontal
+      // → las celdas quedan anchas y las vetas horizontales
       const cx = 3 * (1 << o);
-      const cy = 2 * (1 << o);
+      const cy = Math.max(1, Math.round(cx * ESTIRADO_NUBES));
 
       const datos =
         new Float32Array(cx * (cy + 1));
 
-      for (
-        let i = 0;
-        i < datos.length;
-        i++
-      ) {
+      for (let i = 0; i < datos.length; i++) {
         datos[i] = azar();
       }
 
-      redes.push({
-        cx,
-        cy,
-        datos
-      });
+      redes.push({ cx, cy, datos });
     }
 
 
@@ -220,17 +366,10 @@ const reducir =
       const y0 = Math.min(iy, red.cy);
       const y1 = Math.min(iy + 1, red.cy);
 
-      const a =
-        red.datos[y0 * red.cx + x0];
-
-      const b =
-        red.datos[y0 * red.cx + x1];
-
-      const c =
-        red.datos[y1 * red.cx + x0];
-
-      const d =
-        red.datos[y1 * red.cx + x1];
+      const a = red.datos[y0 * red.cx + x0];
+      const b = red.datos[y0 * red.cx + x1];
+      const c = red.datos[y1 * red.cx + x0];
+      const d = red.datos[y1 * red.cx + x1];
 
       return (
         (a + (b - a) * fx) * (1 - fy) +
@@ -248,10 +387,7 @@ const reducir =
     const ctx = canvas.getContext('2d');
 
     const imagen =
-      ctx.createImageData(
-        anchoPx,
-        altoPx
-      );
+      ctx.createImageData(anchoPx, altoPx);
 
     const px = imagen.data;
 
@@ -260,11 +396,7 @@ const reducir =
 
       const y = py / altoPx;
 
-      for (
-        let pxx = 0;
-        pxx < anchoPx;
-        pxx++
-      ) {
+      for (let pxx = 0; pxx < anchoPx; pxx++) {
 
         const x = pxx / anchoPx;
 
@@ -277,9 +409,7 @@ const reducir =
 
         for (let o = 0; o < OCTAVAS; o++) {
 
-          n +=
-            muestra(redes[o], x, y) *
-            amplitud;
+          n += muestra(redes[o], x, y) * amplitud;
 
           total += amplitud;
 
@@ -288,60 +418,31 @@ const reducir =
 
         n /= total;
 
-        // Las nubes siguen siendo más densas arriba
-        n += (1 - y) * 0.14 - 0.06;
+        // Densidad uniforme (no hay "arriba" ni "abajo")
+        n += 0.01;
 
 
         // Densidad
 
         let dens =
-          Math.min(
-            1,
-            Math.max(
-              0,
-              (n - 0.42) / 0.32
-            )
-          );
+          Math.min(1, Math.max(0, (n - 0.42) / 0.32));
 
-        dens =
-          dens *
-          dens *
-          (3 - 2 * dens);
+        dens = dens * dens * (3 - 2 * dens);
 
 
         // Transición entre núcleo y borde
 
         let m =
-          Math.min(
-            1,
-            Math.max(
-              0,
-              (dens - 0.1) / 0.8
-            )
-          );
+          Math.min(1, Math.max(0, (dens - 0.1) / 0.8));
 
-        m =
-          m *
-          m *
-          (3 - 2 * m);
+        m = m * m * (3 - 2 * m);
 
 
-        const i =
-          (py * anchoPx + pxx) * 4;
+        const i = (py * anchoPx + pxx) * 4;
 
-
-        px[i] =
-          borde[0] +
-          (nucleo[0] - borde[0]) * m;
-
-        px[i + 1] =
-          borde[1] +
-          (nucleo[1] - borde[1]) * m;
-
-        px[i + 2] =
-          borde[2] +
-          (nucleo[2] - borde[2]) * m;
-
+        px[i]     = borde[0] + (nucleo[0] - borde[0]) * m;
+        px[i + 1] = borde[1] + (nucleo[1] - borde[1]) * m;
+        px[i + 2] = borde[2] + (nucleo[2] - borde[2]) * m;
 
         px[i + 3] =
           Math.pow(dens, 0.85) *
@@ -369,15 +470,7 @@ const reducir =
   ) {
 
     const base =
-      generarNubes(
-        semilla,
-        448,
-        176,
-        nucleo,
-        borde,
-        alfaMax
-      );
-
+      generarNubes(semilla, 256, 256, nucleo, borde, alfaMax);
 
     const copia =
       document.createElement('canvas');
@@ -385,55 +478,27 @@ const reducir =
     copia.width = base.width;
     copia.height = base.height;
 
-    copia
-      .getContext('2d')
-      .drawImage(base, 0, 0);
+    copia.getContext('2d').drawImage(base, 0, 0);
 
 
     const capa =
       document.createElement('div');
 
-    capa.className =
-      `hw-capa ${clase}`;
-
+    capa.className = `hw-capa ${clase}`;
 
     if (!reducir) {
-
-      capa.style.animationDuration =
-        `${segundos}s`;
+      capa.style.animationDuration = `${segundos}s`;
     }
 
-
-    capa.append(
-      base,
-      copia
-    );
-
+    capa.append(base, copia);
 
     return capa;
   }
 
 
-  // ───────── Relámpagos ─────────
-
-  const destellos = [];
-
-
-  function crearDestello() {
-
-    const destello =
-      document.createElement('div');
-
-    destello.className =
-      'hw-relampago';
-
-    destellos.push(destello);
-
-    return destello;
-  }
-
-
   // ───────── Estilos ─────────
+
+  const mitad = TAMANO_AURA / 2;
 
   const estilo =
     document.createElement('style');
@@ -455,15 +520,9 @@ const reducir =
 
       pointer-events: none;
 
-      will-change:
-        transform,
-        opacity;
+      will-change: transform, opacity;
 
-      filter:
-        drop-shadow(
-          0 0 10px
-          rgba(190, 195, 200, 0.55)
-        );
+      filter: drop-shadow(0 0 10px rgba(190, 195, 200, 0.55));
     }
 
 
@@ -478,79 +537,88 @@ const reducir =
     }
 
 
-    .hw-oscuridad {
+    /* ───────── Aura: sigue al fantasma ───────── */
 
-      position: fixed;
-
-      inset: 0;
-
-      z-index: 9999;
-
-      pointer-events: none;
-
-      background-color:
-        ${colorVelo};
-
-      background-image:
-        ${fondoOscuridad};
-    }
-
-
-    /* ───────── Nubes superiores ───────── */
-
-    .hw-nubes {
+    .hw-aura {
 
       position: fixed;
 
       top: 0;
       left: 0;
 
-      width: 100%;
+      width: ${TAMANO_AURA}px;
+      height: ${TAMANO_AURA}px;
 
-      height:
-        ${ALTURA_NUBES * 100}vh;
-
-      z-index: 10000;
+      z-index: 9997;
 
       pointer-events: none;
 
-      overflow: hidden;
-
-      opacity:
-        ${INTENSIDAD_NUBES};
-
-      -webkit-mask-image:
-        linear-gradient(
-          to bottom,
-          #000 0%,
-          #000 30%,
-          transparent 100%
-        );
-
-      mask-image:
-        linear-gradient(
-          to bottom,
-          #000 0%,
-          #000 30%,
-          transparent 100%
-        );
+      will-change: transform, opacity;
     }
 
 
-    /* Luna muy tenue */
+    /* ───────── Oscuridad irregular ───────── */
 
-    .hw-luna {
+    .hw-oscuridad {
 
       position: absolute;
 
       inset: 0;
 
-      background:
-        radial-gradient(
-          ellipse 45% 75% at 76% 0%,
-          rgba(175, 178, 180, 0.16),
-          rgba(175, 178, 180, 0) 70%
-        );
+      background-image: url(${urlOscuridad});
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+
+      will-change: rotate, scale;
+
+      animation:
+        hw-balanceo ${SEG_BALANCEO_OSCURIDAD}s ease-in-out infinite alternate
+        ${RESPIRACION ? `, hw-respira 11s ease-in-out infinite alternate` : ''};
+    }
+
+
+    /* ───────── Nubes: la máscara se balancea ───────── */
+
+    .hw-nubes {
+
+      position: absolute;
+
+      inset: 0;
+
+      opacity: ${INTENSIDAD_NUBES};
+
+      -webkit-mask-image: url(${urlMascara});
+      mask-image: url(${urlMascara});
+
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+
+      will-change: rotate, scale;
+
+      animation:
+        hw-balanceo ${SEG_BALANCEO_NUBES}s ease-in-out infinite alternate
+        ${RESPIRACION ? `, hw-respira 8s ease-in-out infinite alternate-reverse` : ''};
+    }
+
+
+    /* El contenido hace el balanceo contrario, así las vetas
+       de las nubes siempre quedan horizontales */
+
+    .hw-nubes-in {
+
+      position: absolute;
+
+      inset: 0;
+
+      overflow: hidden;
+
+      will-change: rotate;
+
+      animation:
+        hw-balanceo ${SEG_BALANCEO_NUBES}s ease-in-out infinite alternate-reverse;
     }
 
 
@@ -566,14 +634,9 @@ const reducir =
 
       display: flex;
 
-      will-change:
-        transform;
+      will-change: transform;
 
-      animation:
-        hw-nubes-avanzan
-        200s
-        linear
-        infinite;
+      animation: hw-nubes-avanzan 20s linear infinite;
     }
 
 
@@ -588,70 +651,30 @@ const reducir =
     }
 
 
-    .hw-capa-fondo {
+    .hw-capa-contra {
 
-      height: 110%;
-
-      top: -6%;
+      animation-direction: reverse;
     }
 
 
-    /* ───────── Nubes inferiores ───────── */
+    /* ───────── Rayos ───────── */
 
-    .hw-nubes-abajo {
+    .hw-rayos {
 
-      position: fixed;
+      position: absolute;
 
-      bottom: 0;
-      left: 0;
+      inset: 0;
 
       width: 100%;
+      height: 100%;
 
-      height:
-        ${ALTURA_NUBES_ABAJO * 100}vh;
+      overflow: visible;
 
-      z-index: 10000;
-
-      pointer-events: none;
-
-      overflow: hidden;
-
-      opacity:
-        ${INTENSIDAD_NUBES_ABAJO};
-
-      -webkit-mask-image:
-        linear-gradient(
-          to top,
-          #000 0%,
-          #000 30%,
-          transparent 100%
-        );
-
-      mask-image:
-        linear-gradient(
-          to top,
-          #000 0%,
-          #000 30%,
-          transparent 100%
-        );
+      filter:
+        drop-shadow(0 0 5px ${COLOR_BRILLO_RAYO})
+        drop-shadow(0 0 16px ${COLOR_BRILLO_RAYO});
     }
 
-
-    .hw-nubes-abajo .hw-capa {
-
-      animation-direction:
-        reverse;
-    }
-
-
-    .hw-nubes-abajo .hw-capa canvas {
-
-      transform:
-        scaleY(-1);
-    }
-
-
-    /* ───────── Relámpago ───────── */
 
     .hw-relampago {
 
@@ -663,59 +686,40 @@ const reducir =
 
       background:
         radial-gradient(
-          ellipse 40% 80%
-          at
-          var(--hw-rx, 50%)
-          var(--hw-ry, 15%),
-
-          rgba(
-            220,
-            225,
-            225,
-            0.8
-          ),
-
-          rgba(
-            220,
-            225,
-            225,
-            0
-          ) 70%
+          ellipse 50% 35%
+          at var(--hw-rx, 50%) var(--hw-ry, 50%),
+          rgba(190, 210, 255, 0.55),
+          rgba(190, 210, 255, 0) 70%
         );
     }
 
 
-    .hw-nubes-abajo
-    .hw-relampago {
-
-      --hw-ry: 85%;
-    }
-
-
     ${reducir
-      ? '.hw-capa { animation: none; }'
+      ? '.hw-capa, .hw-oscuridad, .hw-nubes, .hw-nubes-in { animation: none; }'
       : ''}
 
 
     @keyframes hw-nubes-avanzan {
 
-      from {
-        transform:
-          translate3d(
-            0,
-            0,
-            0
-          );
-      }
+      from { transform: translate3d(0, 0, 0); }
 
-      to {
-        transform:
-          translate3d(
-            -50%,
-            0,
-            0
-          );
-      }
+      to   { transform: translate3d(-50%, 0, 0); }
+    }
+
+
+    @keyframes hw-balanceo {
+
+      from { rotate: -${BALANCEO}deg; }
+
+      to   { rotate: ${BALANCEO}deg; }
+    }
+
+
+    @keyframes hw-respira {
+
+      from { scale: 0.9; }
+
+      to   { scale: 1.05; }
     }
 
   `;
@@ -729,13 +733,9 @@ const reducir =
   const fantasma =
     document.createElement('div');
 
-  fantasma.className =
-    'hw-fantasma';
+  fantasma.className = 'hw-fantasma';
 
-  fantasma.setAttribute(
-    'aria-hidden',
-    'true'
-  );
+  fantasma.setAttribute('aria-hidden', 'true');
 
 
   fantasma.innerHTML = `
@@ -833,21 +833,13 @@ const reducir =
         stroke-linecap="round"
       >
 
-        <path
-          d="M29 72 C32 86 29 99 33 113"
-        />
+        <path d="M29 72 C32 86 29 99 33 113" />
 
-        <path
-          d="M51 78 C52 92 49 102 53 118"
-        />
+        <path d="M51 78 C52 92 49 102 53 118" />
 
-        <path
-          d="M71 68 C69 83 73 96 70 109"
-        />
+        <path d="M71 68 C69 83 73 96 70 109" />
 
-        <path
-          d="M20 58 C23 66 22 74 24 82"
-        />
+        <path d="M20 58 C23 66 22 74 24 82" />
 
       </g>
 
@@ -880,162 +872,112 @@ const reducir =
   `;
 
 
-  document.body.appendChild(fantasma);
+  // ───────── Aura (oscuridad + nubes + rayos) ─────────
+
+  const NS_SVG = 'http://www.w3.org/2000/svg';
+
+  let aura = null;
+  let destello = null;
+  let capaRayos = null;
 
 
-  // ───────── Capas ─────────
+  if (OSCURIDAD || NUBES) {
 
-  let oscuridad = null;
-  let nubes = null;
-  let nubesAbajo = null;
-
-
-  if (MODO_OSCURIDAD !== 'ninguna') {
-
-    oscuridad =
+    aura =
       document.createElement('div');
 
-    oscuridad.className =
-      'hw-oscuridad';
+    aura.className = 'hw-aura';
 
-    oscuridad.setAttribute(
-      'aria-hidden',
-      'true'
-    );
-
-    document.body.appendChild(
-      oscuridad
-    );
+    aura.setAttribute('aria-hidden', 'true');
 
 
-    // ───────── Nubes arriba ─────────
+    if (OSCURIDAD) {
+
+      const oscuridad =
+        document.createElement('div');
+
+      oscuridad.className = 'hw-oscuridad';
+
+      aura.appendChild(oscuridad);
+    }
+
 
     if (NUBES) {
 
-      nubes =
+      const nubes =
         document.createElement('div');
 
-      nubes.className =
-        'hw-nubes';
-
-      nubes.setAttribute(
-        'aria-hidden',
-        'true'
-      );
+      nubes.className = 'hw-nubes';
 
 
-      if (LUNA) {
+      const dentro =
+        document.createElement('div');
 
-        const luna =
-          document.createElement('div');
-
-        luna.className =
-          'hw-luna';
-
-        nubes.appendChild(luna);
-      }
+      dentro.className = 'hw-nubes-in';
 
 
-      // Fondo: gris muy sutil
-      nubes.appendChild(
+      // Fondo: gris muy oscuro, lento
+      dentro.appendChild(
         crearCapaNubes(
           'hw-capa-fondo',
           7,
           [12, 14, 17],
           [48, 50, 54],
-          0.55,
+          0.75,
           240
         )
       );
 
 
-      // Frente: gris reducido
-      nubes.appendChild(
+      // Frente: algo más claro, sentido contrario
+      dentro.appendChild(
         crearCapaNubes(
-          'hw-capa-frente',
+          'hw-capa-contra',
           21,
           [18, 20, 23],
           [62, 64, 68],
-          0.45,
+          0.6,
           140
         )
       );
 
 
-      if (
-        RELAMPAGOS &&
-        !reducir
-      ) {
-        nubes.appendChild(
-          crearDestello()
+      if (RELAMPAGOS && !reducir) {
+
+        destello =
+          document.createElement('div');
+
+        destello.className = 'hw-relampago';
+
+        dentro.appendChild(destello);
+
+
+        capaRayos =
+          document.createElementNS(NS_SVG, 'svg');
+
+        capaRayos.setAttribute('class', 'hw-rayos');
+
+        capaRayos.setAttribute(
+          'viewBox',
+          `0 0 ${TAMANO_AURA} ${TAMANO_AURA}`
         );
+
+        dentro.appendChild(capaRayos);
       }
 
 
-      document.body.appendChild(
-        nubes
-      );
+      nubes.appendChild(dentro);
+
+      aura.appendChild(nubes);
     }
 
 
-    // ───────── Nubes abajo ─────────
-
-    if (NUBES_ABAJO) {
-
-      nubesAbajo =
-        document.createElement('div');
-
-      nubesAbajo.className =
-        'hw-nubes-abajo';
-
-      nubesAbajo.setAttribute(
-        'aria-hidden',
-        'true'
-      );
-
-
-      // Niebla inferior gris y sutil
-
-      nubesAbajo.appendChild(
-        crearCapaNubes(
-          'hw-capa-fondo',
-          33,
-          [11, 13, 16],
-          [45, 48, 52],
-          0.50,
-          300
-        )
-      );
-
-
-      nubesAbajo.appendChild(
-        crearCapaNubes(
-          'hw-capa-frente',
-          47,
-          [17, 19, 22],
-          [59, 62, 66],
-          0.40,
-          170
-        )
-      );
-
-
-      if (
-        RELAMPAGOS &&
-        !reducir
-      ) {
-        nubesAbajo.appendChild(
-          crearDestello()
-        );
-      }
-
-
-      document.body.appendChild(
-        nubesAbajo
-      );
-    }
-
+    // Primero el aura (detrás), luego el fantasma (delante)
+    document.body.appendChild(aura);
   }
+
+
+  document.body.appendChild(fantasma);
 
 
   // ───────── Estado ─────────
@@ -1045,27 +987,16 @@ const reducir =
 
   // Cursor
 
-  let ratonX =
-    window.innerWidth / 2;
-
-  let ratonY =
-    window.innerHeight / 2;
+  let ratonX = window.innerWidth / 2;
+  let ratonY = window.innerHeight / 2;
 
   let ratonVisto = false;
-
-  let luzX = ratonX;
-  let luzY = ratonY;
 
 
   // Fantasma
 
-  let gx =
-    Math.random() *
-    (window.innerWidth - ANCHO);
-
-  let gy =
-    Math.random() *
-    (window.innerHeight - ALTO);
+  let gx = Math.random() * (window.innerWidth - ANCHO);
+  let gy = Math.random() * (window.innerHeight - ALTO);
 
   let vx = 0;
   let vy = 0;
@@ -1103,30 +1034,15 @@ const reducir =
 
   // ───────── Utilidades ─────────
 
-  function limitar(
-    valor,
-    min,
-    max
-  ) {
+  function limitar(valor, min, max) {
 
-    return Math.max(
-      min,
-      Math.min(max, valor)
-    );
+    return Math.max(min, Math.min(max, valor));
   }
 
 
-  function suave(
-    dt,
-    rapidez
-  ) {
+  function suave(dt, rapidez) {
 
-    return (
-      1 -
-      Math.exp(
-        -dt * rapidez
-      )
-    );
+    return 1 - Math.exp(-dt * rapidez);
   }
 
 
@@ -1134,85 +1050,57 @@ const reducir =
 
     return {
 
-      x:
-        Math.random() *
-        (window.innerWidth - ANCHO),
+      x: Math.random() * (window.innerWidth - ANCHO),
 
-      y:
-        Math.random() *
-        (window.innerHeight - ALTO)
+      y: Math.random() * (window.innerHeight - ALTO)
 
     };
   }
 
 
-  function nuevoDestino(
-    buscarCursor
-  ) {
+  function nuevoDestino(buscarCursor) {
 
     let x;
     let y;
 
 
-    if (
-      buscarCursor &&
-      Math.random() < 0.3
-    ) {
+    if (buscarCursor && Math.random() < 0.3) {
 
       x =
         ratonX -
         ANCHO / 2 +
-        (Math.random() - 0.5) *
-        200;
+        (Math.random() - 0.5) * 200;
 
       y =
         ratonY -
         ALTO / 2 +
-        (Math.random() - 0.5) *
-        200;
+        (Math.random() - 0.5) * 200;
 
     } else {
 
-      const p =
-        puntoAleatorio();
+      const p = puntoAleatorio();
 
       x = p.x;
       y = p.y;
     }
 
 
-    destinoX =
-      limitar(
-        x,
-        0,
-        window.innerWidth - ANCHO
-      );
+    destinoX = limitar(x, 0, window.innerWidth - ANCHO);
 
-    destinoY =
-      limitar(
-        y,
-        0,
-        window.innerHeight - ALTO
-      );
+    destinoY = limitar(y, 0, window.innerHeight - ALTO);
   }
 
 
   function destinoLejosDelCursor() {
 
-    let mejor =
-      puntoAleatorio();
+    let mejor = puntoAleatorio();
 
     let mejorDist = -1;
 
 
-    for (
-      let i = 0;
-      i < 12;
-      i++
-    ) {
+    for (let i = 0; i < 12; i++) {
 
-      const p =
-        puntoAleatorio();
+      const p = puntoAleatorio();
 
       const d =
         Math.hypot(
@@ -1234,17 +1122,13 @@ const reducir =
   }
 
 
-  function iniciarTele(
-    ahora,
-    lejos
-  ) {
+  function iniciarTele(ahora, lejos) {
 
     fase = 'tele';
 
     teleInicio = ahora;
 
-    finFase =
-      ahora + 460;
+    finFase = ahora + 460;
 
     teleHecho = false;
 
@@ -1252,9 +1136,7 @@ const reducir =
   }
 
 
-  function siguienteFase(
-    ahora
-  ) {
+  function siguienteFase(ahora) {
 
     if (fase !== 'quieto') {
 
@@ -1269,14 +1151,10 @@ const reducir =
     }
 
 
-    const r =
-      Math.random();
+    const r = Math.random();
 
 
-    if (
-      reducir ||
-      r < 0.3
-    ) {
+    if (reducir || r < 0.3) {
 
       fase = 'deriva';
 
@@ -1287,64 +1165,44 @@ const reducir =
 
       nuevoDestino(false);
 
-    } else if (
-      r < 0.72
-    ) {
+    } else if (r < 0.72) {
 
       fase = 'embestida';
 
-      finFase =
-        ahora + 1800;
+      finFase = ahora + 1800;
 
       nuevoDestino(true);
 
     } else {
 
-      iniciarTele(
-        ahora,
-        false
-      );
+      iniciarTele(ahora, false);
     }
   }
 
 
   // ───────── Huida ─────────
 
-  function huir(
-    ahora,
-    cx,
-    cy
-  ) {
+  function huir(ahora, cx, cy) {
 
-    enfriamientoHuida =
-      ahora + 350;
+    enfriamientoHuida = ahora + 350;
 
     cercaDesde = 0;
 
 
     if (reducir) {
 
-      iniciarTele(
-        ahora,
-        true
-      );
+      iniciarTele(ahora, true);
 
       return;
     }
 
 
-    let ux =
-      cx - ratonX;
+    let ux = cx - ratonX;
 
-    let uy =
-      cy - ratonY;
+    let uy = cy - ratonY;
 
 
-    const largo =
-      Math.hypot(
-        ux,
-        uy
-      ) || 1;
+    const largo = Math.hypot(ux, uy) || 1;
 
 
     ux /= largo;
@@ -1353,9 +1211,7 @@ const reducir =
 
     // Desvío para evitar una línea perfecta
 
-    const angulo =
-      (Math.random() - 0.5) *
-      1.2;
+    const angulo = (Math.random() - 0.5) * 1.2;
 
 
     const rx =
@@ -1367,56 +1223,35 @@ const reducir =
       uy * Math.cos(angulo);
 
 
-    const distancia =
-      300 +
-      Math.random() * 250;
+    const distancia = 300 + Math.random() * 250;
 
 
     const tx =
       limitar(
-        cx +
-        rx * distancia -
-        ANCHO / 2,
-
+        cx + rx * distancia - ANCHO / 2,
         0,
-
         window.innerWidth - ANCHO
       );
 
 
     const ty =
       limitar(
-        cy +
-        ry * distancia -
-        ALTO / 2,
-
+        cy + ry * distancia - ALTO / 2,
         0,
-
         window.innerHeight - ALTO
       );
 
 
     const quedaLejos =
       Math.hypot(
-        tx +
-        ANCHO / 2 -
-        ratonX,
-
-        ty +
-        ALTO / 2 -
-        ratonY
+        tx + ANCHO / 2 - ratonX,
+        ty + ALTO / 2 - ratonY
       );
 
 
-    if (
-      quedaLejos < 280 ||
-      Math.random() < 0.2
-    ) {
+    if (quedaLejos < 280 || Math.random() < 0.2) {
 
-      iniciarTele(
-        ahora,
-        true
-      );
+      iniciarTele(ahora, true);
 
     } else {
 
@@ -1425,56 +1260,38 @@ const reducir =
 
       fase = 'huida';
 
-      finFase =
-        ahora + 1300;
+      finFase = ahora + 1300;
     }
   }
 
 
   // ───────── Animación ─────────
 
-  function fotograma(
-    ahora
-  ) {
+  function fotograma(ahora) {
 
     if (!activo) return;
 
 
     const dt =
-      Math.min(
-        ahora -
-        (ultimo || ahora),
-        50
-      ) / 16.67;
+      Math.min(ahora - (ultimo || ahora), 50) / 16.67;
 
 
     ultimo = ahora;
 
 
-    if (
-      ahora >
-      finFase
-    ) {
+    if (ahora > finFase) {
 
-      siguienteFase(
-        ahora
-      );
+      siguienteFase(ahora);
     }
 
 
     // ── Movimiento ──
 
-    const dx =
-      destinoX - gx;
+    const dx = destinoX - gx;
 
-    const dy =
-      destinoY - gy;
+    const dy = destinoY - gy;
 
-    const dist =
-      Math.hypot(
-        dx,
-        dy
-      );
+    const dist = Math.hypot(dx, dy);
 
 
     let deseadoX = 0;
@@ -1483,26 +1300,16 @@ const reducir =
     let aceleracion = 0.12;
 
 
-    if (
-      fase === 'deriva' &&
-      dist > 2
-    ) {
+    if (fase === 'deriva' && dist > 2) {
 
-      deseadoX =
-        (dx / dist) *
-        VEL_DERIVA;
+      deseadoX = (dx / dist) * VEL_DERIVA;
 
-      deseadoY =
-        (dy / dist) *
-        VEL_DERIVA;
+      deseadoY = (dy / dist) * VEL_DERIVA;
 
       aceleracion = 0.05;
 
 
-    } else if (
-      fase === 'embestida' ||
-      fase === 'huida'
-    ) {
+    } else if (fase === 'embestida' || fase === 'huida') {
 
       if (dist < 10) {
 
@@ -1510,146 +1317,88 @@ const reducir =
 
       } else {
 
-        const huyendo =
-          fase === 'huida';
+        const huyendo = fase === 'huida';
 
 
         const velocidad =
           Math.min(
-            huyendo
-              ? VEL_HUIDA
-              : VEL_EMBESTIDA,
-
-            1 +
-            dist * 0.09
+            huyendo ? VEL_HUIDA : VEL_EMBESTIDA,
+            1 + dist * 0.09
           );
 
 
-        deseadoX =
-          (dx / dist) *
-          velocidad;
+        deseadoX = (dx / dist) * velocidad;
 
-        deseadoY =
-          (dy / dist) *
-          velocidad;
+        deseadoY = (dy / dist) * velocidad;
 
 
-        aceleracion =
-          huyendo
-            ? 0.22
-            : 0.14;
+        aceleracion = huyendo ? 0.22 : 0.14;
       }
     }
 
 
-    const k =
-      suave(
-        dt,
-        aceleracion
-      );
+    const k = suave(dt, aceleracion);
 
 
-    vx +=
-      (deseadoX - vx) * k;
+    vx += (deseadoX - vx) * k;
 
-    vy +=
-      (deseadoY - vy) * k;
+    vy += (deseadoY - vy) * k;
 
 
-    gx +=
-      vx * dt;
+    gx += vx * dt;
 
-    gy +=
-      vy * dt;
+    gy += vy * dt;
 
 
     // ── Temblor ──
 
     const temblorObjetivo =
-      fase === 'quieto' &&
-      !reducir
-        ? 1
-        : 0;
+      fase === 'quieto' && !reducir ? 1 : 0;
 
 
-    temblor +=
-      (temblorObjetivo -
-        temblor) *
-      suave(dt, 0.1);
+    temblor += (temblorObjetivo - temblor) * suave(dt, 0.1);
 
 
     const jx =
       (
-        Math.sin(ahora / 41) *
-        0.9 +
-
-        Math.sin(ahora / 17) *
-        0.5
-      ) *
-      temblor;
+        Math.sin(ahora / 41) * 0.9 +
+        Math.sin(ahora / 17) * 0.5
+      ) * temblor;
 
 
     const jy =
       (
-        Math.sin(
-          ahora / 37 + 1
-        ) *
-        0.9 +
-
-        Math.sin(
-          ahora / 19
-        ) *
-        0.5
-      ) *
-      temblor;
+        Math.sin(ahora / 37 + 1) * 0.9 +
+        Math.sin(ahora / 19) * 0.5
+      ) * temblor;
 
 
     // ── Inclinación ──
 
     const inclinacionObjetivo =
-      limitar(
-        vx * 0.8,
-        -14,
-        14
-      );
+      limitar(vx * 0.8, -14, 14);
 
 
     inclinacion +=
-      (
-        inclinacionObjetivo -
-        inclinacion
-      ) *
-      suave(dt, 0.15);
+      (inclinacionObjetivo - inclinacion) * suave(dt, 0.15);
 
 
     // ── Opacidad ──
 
     let opacidadObjetivo =
-      0.88 +
-      0.07 *
-      Math.sin(
-        ahora / 500
-      );
+      0.88 + 0.07 * Math.sin(ahora / 500);
 
 
-    if (
-      fase === 'tele'
-    ) {
+    if (fase === 'tele') {
 
-      const transcurrido =
-        ahora -
-        teleInicio;
+      const transcurrido = ahora - teleInicio;
 
 
-      if (
-        transcurrido < 200
-      ) {
+      if (transcurrido < 200) {
 
         opacidadObjetivo = 0;
 
-      } else if (
-        !teleHecho
-      ) {
+      } else if (!teleHecho) {
 
         if (teleLejos) {
 
@@ -1674,49 +1423,36 @@ const reducir =
 
       // Parpadeo ocasional
 
-      if (
-        ahora >
-        proximoParpadeo
-      ) {
+      if (ahora > proximoParpadeo) {
 
         parpadeoHasta =
-          ahora +
-          90 +
-          Math.random() *
-          140;
+          ahora + 90 + Math.random() * 140;
 
 
         proximoParpadeo =
-          ahora +
-          3000 +
-          Math.random() *
-          5000;
+          ahora + 3000 + Math.random() * 5000;
       }
 
 
-      if (
-        ahora <
-        parpadeoHasta
-      ) {
+      if (ahora < parpadeoHasta) {
 
-        opacidadObjetivo =
-          0.25;
+        opacidadObjetivo = 0.25;
       }
     }
 
 
     opacidadActual +=
-      (
-        opacidadObjetivo -
-        opacidadActual
-      ) *
-      suave(dt, 0.35);
+      (opacidadObjetivo - opacidadActual) * suave(dt, 0.35);
+
+
+    const px = gx + jx;
+    const py = gy + jy;
 
 
     fantasma.style.transform =
       `translate3d(
-        ${(gx + jx).toFixed(2)}px,
-        ${(gy + jy).toFixed(2)}px,
+        ${px.toFixed(2)}px,
+        ${py.toFixed(2)}px,
         0
       )
       rotate(
@@ -1724,106 +1460,58 @@ const reducir =
       )`;
 
 
-    fantasma.style.opacity =
-      opacidadActual.toFixed(3);
+    fantasma.style.opacity = opacidadActual.toFixed(3);
 
 
-    // ── Modo linterna ──
+    // ── Aura: centrada en el fantasma ──
 
-    if (
-      oscuridad &&
-      MODO_OSCURIDAD === 'linterna'
-    ) {
+    if (aura) {
 
-      luzX +=
-        (
-          ratonX - luzX
-        ) *
-        SUAVIZADO_LUZ;
+      const ax = px + ANCHO / 2 - mitad;
+      const ay = py + ALTO / 2 - mitad;
 
 
-      luzY +=
-        (
-          ratonY - luzY
-        ) *
-        SUAVIZADO_LUZ;
+      aura.style.transform =
+        `translate3d(
+          ${ax.toFixed(2)}px,
+          ${ay.toFixed(2)}px,
+          0
+        )`;
 
 
-      const parpadeoLuz =
-        reducir
-          ? 0
-          : Math.sin(
-              ahora / 140
-            ) * 3 +
-            Math.sin(
-              ahora / 53
-            ) * 2;
+      // El aura se desvanece con el fantasma al teletransportarse
+      // (el parpadeo corto no la afecta)
+
+      const opAura =
+        fase === 'tele'
+          ? limitar(opacidadActual / 0.88, 0, 1)
+          : 1;
 
 
-      oscuridad.style.setProperty(
-        '--hw-x',
-        luzX + 'px'
-      );
-
-
-      oscuridad.style.setProperty(
-        '--hw-y',
-        luzY + 'px'
-      );
-
-
-      oscuridad.style.setProperty(
-        '--hw-r',
-        RADIO_LUZ +
-        parpadeoLuz +
-        'px'
-      );
+      aura.style.opacity = opAura.toFixed(3);
     }
 
 
-    requestAnimationFrame(
-      fotograma
-    );
+    requestAnimationFrame(fotograma);
   }
 
 
   // ───────── Activar / desactivar ─────────
 
-  function activar(
-    valor
-  ) {
+  function activar(valor) {
 
     activo = valor;
 
 
-    const visibilidad =
-      valor
-        ? ''
-        : 'none';
+    const visibilidad = valor ? '' : 'none';
 
 
-    fantasma.style.display =
-      visibilidad;
+    fantasma.style.display = visibilidad;
 
 
-    if (oscuridad) {
+    if (aura) {
 
-      oscuridad.style.display =
-        visibilidad;
-    }
-
-
-    if (nubes) {
-
-      nubes.style.display =
-        visibilidad;
-    }
-
-
-    if (nubesAbajo) {
-
-      nubesAbajo.style.display =
-        visibilidad;
+      aura.style.display = visibilidad;
     }
 
 
@@ -1831,9 +1519,7 @@ const reducir =
 
       ultimo = 0;
 
-      requestAnimationFrame(
-        fotograma
-      );
+      requestAnimationFrame(fotograma);
     }
   }
 
@@ -1844,11 +1530,9 @@ const reducir =
     'pointermove',
     (e) => {
 
-      ratonX =
-        e.clientX;
+      ratonX = e.clientX;
 
-      ratonY =
-        e.clientY;
+      ratonY = e.clientY;
 
       ratonVisto = true;
     }
@@ -1874,9 +1558,7 @@ const reducir =
     'keydown',
     (e) => {
 
-      if (
-        e.key === 'Escape'
-      ) {
+      if (e.key === 'Escape') {
 
         activar(!activo);
       }
@@ -1890,103 +1572,261 @@ const reducir =
     'resize',
     () => {
 
-      gx =
-        limitar(
-          gx,
-          0,
-          window.innerWidth - ANCHO
-        );
+      gx = limitar(gx, 0, window.innerWidth - ANCHO);
 
-
-      gy =
-        limitar(
-          gy,
-          0,
-          window.innerHeight - ALTO
-        );
+      gy = limitar(gy, 0, window.innerHeight - ALTO);
     }
   );
 
 
-  // ───────── Relámpagos ─────────
+  // ───────── Rayos ─────────
+
+  // Camino zigzagueante entre dos puntos (desplazamiento del punto medio)
+
+  function puntosRayo(x1, y1, x2, y2, desp) {
+
+    let pts = [[x1, y1], [x2, y2]];
+
+
+    for (let it = 0; it < 6; it++) {
+
+      const nuevo = [pts[0]];
+
+
+      for (let i = 0; i < pts.length - 1; i++) {
+
+        const [ax, ay] = pts[i];
+        const [bx, by] = pts[i + 1];
+
+        const dx = bx - ax;
+        const dy = by - ay;
+
+        const largo = Math.hypot(dx, dy) || 1;
+
+        const off = (Math.random() - 0.5) * desp;
+
+        nuevo.push([
+          (ax + bx) / 2 - (dy / largo) * off,
+          (ay + by) / 2 + (dx / largo) * off
+        ]);
+
+        nuevo.push([bx, by]);
+      }
+
+
+      pts = nuevo;
+
+      desp *= 0.55;
+    }
+
+
+    return pts;
+  }
+
+
+  function trazo(pts) {
+
+    return (
+      'M' +
+      pts
+        .map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1))
+        .join(' L')
+    );
+  }
+
+
+  function crearTrazo(d, ancho, color, opacidad) {
+
+    const p =
+      document.createElementNS(NS_SVG, 'path');
+
+    p.setAttribute('d', d);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', color);
+    p.setAttribute('stroke-width', ancho);
+    p.setAttribute('stroke-opacity', opacidad);
+    p.setAttribute('stroke-linecap', 'round');
+    p.setAttribute('stroke-linejoin', 'round');
+
+    return p;
+  }
+
+
+  function dibujarRayo() {
+
+    if (!capaRayos) return;
+
+
+    const c = TAMANO_AURA / 2;
+
+    // Centro del rayo, cerca del fantasma
+    const cx = c + (Math.random() - 0.5) * 200;
+    const cy = c + (Math.random() - 0.5) * 120;
+
+
+    // Sobre todo horizontal o diagonal; a veces en cualquier dirección
+    let ang;
+
+    if (Math.random() < 0.7) {
+
+      ang =
+        (Math.random() < 0.5 ? 0 : Math.PI) +
+        (Math.random() - 0.5) * 1.1;
+
+    } else {
+
+      ang = Math.random() * Math.PI * 2;
+    }
+
+
+    const largo = 280 + Math.random() * 260;
+
+    const ux = Math.cos(ang);
+    const uy = Math.sin(ang);
+
+
+    const x1 = cx - ux * largo / 2;
+    const y1 = cy - uy * largo / 2;
+
+    const x2 = cx + ux * largo / 2;
+    const y2 = cy + uy * largo / 2;
+
+
+    const grupo =
+      document.createElementNS(NS_SVG, 'g');
+
+    grupo.style.opacity = '0';
+
+
+    const principal =
+      puntosRayo(x1, y1, x2, y2, largo * 0.32);
+
+    const d = trazo(principal);
+
+
+    grupo.appendChild(crearTrazo(d, 6, COLOR_BRILLO_RAYO, 0.35));
+    grupo.appendChild(crearTrazo(d, 2.2, COLOR_RAYO, 1));
+
+
+    // Ramificaciones
+    const ramas = 1 + Math.floor(Math.random() * 3);
+
+    for (let r = 0; r < ramas; r++) {
+
+      const idx =
+        Math.floor(
+          principal.length * (0.2 + Math.random() * 0.6)
+        );
+
+      const [bx, by] = principal[idx];
+
+      const angRama =
+        ang +
+        (Math.random() < 0.5 ? -1 : 1) *
+        (0.4 + Math.random() * 0.7);
+
+      const largoRama = 80 + Math.random() * 120;
+
+      const rama =
+        puntosRayo(
+          bx,
+          by,
+          bx + Math.cos(angRama) * largoRama,
+          by + Math.sin(angRama) * largoRama,
+          largoRama * 0.35
+        );
+
+      const dr = trazo(rama);
+
+      grupo.appendChild(crearTrazo(dr, 3.5, COLOR_BRILLO_RAYO, 0.3));
+      grupo.appendChild(crearTrazo(dr, 1.2, COLOR_RAYO, 0.9));
+    }
+
+
+    capaRayos.appendChild(grupo);
+
+
+    const anim =
+      grupo.animate(
+        [
+          { opacity: 0 },
+          { opacity: 1, offset: 0.05 },
+          { opacity: 0.25, offset: 0.16 },
+          { opacity: 1, offset: 0.26 },
+          { opacity: 0.1, offset: 0.42 },
+          { opacity: 0.75, offset: 0.52 },
+          { opacity: 0 }
+        ],
+        {
+          duration: 380 + Math.random() * 320,
+          easing: 'ease-out'
+        }
+      );
+
+    anim.onfinish = () => grupo.remove();
+
+
+    // Destello de luz en la zona del rayo
+    if (destello) {
+
+      destello.style.setProperty(
+        '--hw-rx',
+        (cx / TAMANO_AURA * 100).toFixed(1) + '%'
+      );
+
+      destello.style.setProperty(
+        '--hw-ry',
+        (cy / TAMANO_AURA * 100).toFixed(1) + '%'
+      );
+
+      destello.animate(
+        [
+          { opacity: 0 },
+          { opacity: 0.9, offset: 0.08 },
+          { opacity: 0.15, offset: 0.22 },
+          { opacity: 0.6, offset: 0.34 },
+          { opacity: 0 }
+        ],
+        {
+          duration: 600 + Math.random() * 300,
+          easing: 'ease-out'
+        }
+      );
+    }
+  }
+
+
+  // Una tormenta = 1 a 3 rayos seguidos
 
   function lanzarRelampago() {
 
-    if (!destellos.length) return;
+    if (!capaRayos) return;
 
 
-    const destello =
-      destellos[
-        Math.floor(
-          Math.random() *
-          destellos.length
-        )
-      ];
+    const n =
+      1 +
+      (Math.random() < 0.45 ? 1 : 0) +
+      (Math.random() < 0.2 ? 1 : 0);
 
 
-    destello.style.setProperty(
-      '--hw-rx',
-      (
-        10 +
-        Math.random() * 80
-      ) + '%'
-    );
+    for (let i = 0; i < n; i++) {
+
+      setTimeout(
+        dibujarRayo,
+        i * (90 + Math.random() * 160)
+      );
+    }
 
 
-    destello.animate(
+    // El fantasma titila con el relámpago
 
-      [
-        {
-          opacity: 0
-        },
-
-        {
-          opacity: 0.9,
-          offset: 0.08
-        },
-
-        {
-          opacity: 0.15,
-          offset: 0.22
-        },
-
-        {
-          opacity: 0.7,
-          offset: 0.34
-        },
-
-        {
-          opacity: 0
-        }
-      ],
-
-      {
-        duration:
-          700 +
-          Math.random() * 400,
-
-        easing:
-          'ease-out'
-      }
-    );
-
-
-    // El fantasma titila
-    // con el relámpago
-
-    parpadeoHasta =
-      performance.now() +
-      250;
+    parpadeoHasta = performance.now() + 250;
   }
 
 
   function programarRelampago() {
 
-    if (
-      reducir ||
-      !RELAMPAGOS ||
-      !destellos.length
-    ) {
+    if (reducir || !RELAMPAGOS || !capaRayos) {
 
       return;
     }
@@ -2005,22 +1845,18 @@ const reducir =
 
       },
 
-      9000 +
-      Math.random() * 18000
+      RAYOS_MIN_MS +
+      Math.random() * (RAYOS_MAX_MS - RAYOS_MIN_MS)
     );
   }
 
 
   // ───────── Arranque ─────────
 
-  finFase =
-    performance.now() +
-    600;
+  finFase = performance.now() + 600;
 
 
-  proximoParpadeo =
-    performance.now() +
-    4000;
+  proximoParpadeo = performance.now() + 4000;
 
 
   activar(true);
