@@ -1,5 +1,8 @@
 (() => {
 
+  // Esta parte de la página web la ha hecho un modelo de IA. 
+
+
   // ───────── Configuración ─────────
 
   // true = se muestra siempre

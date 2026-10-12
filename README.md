@@ -1,2 +1,2 @@
 # site
-El repositorio de GitHub de joslfer.es.
+El repositorio de joslfer.es.
