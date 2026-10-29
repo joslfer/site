@@ -9,6 +9,16 @@
   // false = solo del 29 al 31 de octubre
   const FORZAR = false;
 
+  // ───────── Desapariciones aleatorias ─────────
+
+  // Cada cuántos segundos (aleatorio entre min y max) empieza a desaparecer
+  const DESAPARECE_CADA_MIN_S = 12;
+  const DESAPARECE_CADA_MAX_S = 30;
+
+  // Cuántos segundos (aleatorio entre min y max) permanece desaparecido
+  const DESAPARECE_DURA_MIN_S = 3;
+  const DESAPARECE_DURA_MAX_S = 9;
+
   // ───────── Aura (zona alrededor del fantasma) ─────────
 
   // Anchura máxima del aura en píxeles
@@ -509,14 +519,37 @@
 
   estilo.textContent = `
 
-    .hw-fantasma {
+    /* ───────── Contenedor: ocupa toda la altura de la página ─────────
+       Todo lo del fantasma vive aquí dentro, en coordenadas de página,
+       así recorre la página entera (no solo el viewport) y se recorta
+       en los bordes del documento sin crear scroll extra. */
 
-      position: fixed;
+    .hw-contenedor {
+
+      position: absolute;
 
       top: 0;
       left: 0;
 
-      z-index: 9998;
+      width: 100%;
+      height: 100%;
+
+      overflow: hidden;
+
+      z-index: 9997;
+
+      pointer-events: none;
+    }
+
+
+    .hw-fantasma {
+
+      position: absolute;
+
+      top: 0;
+      left: 0;
+
+      z-index: 2;
 
       width: ${ANCHO}px;
       height: ${ALTO}px;
@@ -544,7 +577,7 @@
 
     .hw-aura {
 
-      position: fixed;
+      position: absolute;
 
       top: 0;
       left: 0;
@@ -552,7 +585,7 @@
       width: ${TAMANO_AURA}px;
       height: ${TAMANO_AURA}px;
 
-      z-index: 9997;
+      z-index: 1;
 
       pointer-events: none;
 
@@ -729,6 +762,52 @@
 
 
   document.head.appendChild(estilo);
+
+
+  // ───────── Contenedor ─────────
+
+  const contenedor =
+    document.createElement('div');
+
+  contenedor.className = 'hw-contenedor';
+
+  contenedor.setAttribute('aria-hidden', 'true');
+
+
+  // Medidas de la página (en coordenadas de documento)
+
+  let anchoPag = document.documentElement.clientWidth;
+  let altoPag = window.innerHeight;
+
+
+  function medirPagina() {
+
+    // Se oculta un instante el contenedor para que no influya en la medida
+    // (si no, la página nunca podría volver a encogerse)
+
+    const visibilidadAntes = contenedor.style.display;
+
+    contenedor.style.display = 'none';
+
+
+    const doc = document.documentElement;
+    const body = document.body;
+
+
+    anchoPag = doc.clientWidth;
+
+    altoPag =
+      Math.max(
+        doc.scrollHeight,
+        body ? body.scrollHeight : 0,
+        window.innerHeight
+      );
+
+
+    contenedor.style.display = visibilidadAntes;
+
+    contenedor.style.height = altoPag + 'px';
+  }
 
 
   // ───────── Fantasma ─────────
@@ -976,11 +1055,16 @@
 
 
     // Primero el aura (detrás), luego el fantasma (delante)
-    document.body.appendChild(aura);
+    contenedor.appendChild(aura);
   }
 
 
-  document.body.appendChild(fantasma);
+  contenedor.appendChild(fantasma);
+
+  document.body.appendChild(contenedor);
+
+
+  medirPagina();
 
 
   // ───────── Estado ─────────
@@ -988,18 +1072,18 @@
   let activo = true;
 
 
-  // Cursor
+  // Cursor (en coordenadas de página)
 
-  let ratonX = window.innerWidth / 2;
-  let ratonY = window.innerHeight / 2;
+  let ratonX = anchoPag / 2;
+  let ratonY = altoPag / 2;
 
   let ratonVisto = false;
 
 
-  // Fantasma
+  // Fantasma (en coordenadas de página)
 
-  let gx = Math.random() * (window.innerWidth - ANCHO);
-  let gy = Math.random() * (window.innerHeight - ALTO);
+  let gx = Math.random() * (anchoPag - ANCHO);
+  let gy = Math.random() * (altoPag - ALTO);
 
   let vx = 0;
   let vy = 0;
@@ -1035,6 +1119,13 @@
   let ultimo = 0;
 
 
+  // Desapariciones
+
+  let desapareceHasta = 0;
+  let proximaDesaparicion = 0;
+  let estabaOculto = false;
+
+
   // ───────── Utilidades ─────────
 
   function limitar(valor, min, max) {
@@ -1049,13 +1140,19 @@
   }
 
 
+  function aleatorioEntre(min, max) {
+
+    return min + Math.random() * (max - min);
+  }
+
+
   function puntoAleatorio() {
 
     return {
 
-      x: Math.random() * (window.innerWidth - ANCHO),
+      x: Math.random() * Math.max(1, anchoPag - ANCHO),
 
-      y: Math.random() * (window.innerHeight - ALTO)
+      y: Math.random() * Math.max(1, altoPag - ALTO)
 
     };
   }
@@ -1088,9 +1185,9 @@
     }
 
 
-    destinoX = limitar(x, 0, window.innerWidth - ANCHO);
+    destinoX = limitar(x, 0, anchoPag - ANCHO);
 
-    destinoY = limitar(y, 0, window.innerHeight - ALTO);
+    destinoY = limitar(y, 0, altoPag - ALTO);
   }
 
 
@@ -1233,7 +1330,7 @@
       limitar(
         cx + rx * distancia - ANCHO / 2,
         0,
-        window.innerWidth - ANCHO
+        anchoPag - ANCHO
       );
 
 
@@ -1241,7 +1338,7 @@
       limitar(
         cy + ry * distancia - ALTO / 2,
         0,
-        window.innerHeight - ALTO
+        altoPag - ALTO
       );
 
 
@@ -1286,6 +1383,62 @@
 
       siguienteFase(ahora);
     }
+
+
+    // ── Desapariciones aleatorias ──
+
+    if (ahora > proximaDesaparicion) {
+
+      const duracion =
+        aleatorioEntre(
+          DESAPARECE_DURA_MIN_S,
+          DESAPARECE_DURA_MAX_S
+        ) * 1000;
+
+
+      desapareceHasta = ahora + duracion;
+
+
+      proximaDesaparicion =
+        desapareceHasta +
+        aleatorioEntre(
+          DESAPARECE_CADA_MIN_S,
+          DESAPARECE_CADA_MAX_S
+        ) * 1000;
+    }
+
+
+    const oculto = ahora < desapareceHasta;
+
+
+    // Al terminar la desaparición reaparece en otro sitio
+
+    if (estabaOculto && !oculto) {
+
+      const p = puntoAleatorio();
+
+      gx = p.x;
+      gy = p.y;
+
+      vx = 0;
+      vy = 0;
+
+      destinoX = gx;
+      destinoY = gy;
+
+      fase = 'quieto';
+
+      finFase = ahora + 600;
+    }
+
+
+    estabaOculto = oculto;
+
+
+    // Mientras se desvanece o reaparece, el fundido es lento
+
+    const enFundido =
+      ahora < desapareceHasta + 1500;
 
 
     // ── Movimiento ──
@@ -1392,7 +1545,11 @@
       0.88 + 0.07 * Math.sin(ahora / 500);
 
 
-    if (fase === 'tele') {
+    if (oculto) {
+
+      opacidadObjetivo = 0;
+
+    } else if (fase === 'tele') {
 
       const transcurrido = ahora - teleInicio;
 
@@ -1445,7 +1602,8 @@
 
 
     opacidadActual +=
-      (opacidadObjetivo - opacidadActual) * suave(dt, 0.35);
+      (opacidadObjetivo - opacidadActual) *
+      suave(dt, enFundido ? 0.05 : 0.35);
 
 
     const px = gx + jx;
@@ -1483,10 +1641,10 @@
 
 
       // El aura se desvanece con el fantasma al teletransportarse
-      // (el parpadeo corto no la afecta)
+      // o al desaparecer (el parpadeo corto no la afecta)
 
       const opAura =
-        fase === 'tele'
+        fase === 'tele' || enFundido
           ? limitar(opacidadActual / 0.88, 0, 1)
           : 1;
 
@@ -1506,16 +1664,7 @@
     activo = valor;
 
 
-    const visibilidad = valor ? '' : 'none';
-
-
-    fantasma.style.display = visibilidad;
-
-
-    if (aura) {
-
-      aura.style.display = visibilidad;
-    }
+    contenedor.style.display = valor ? '' : 'none';
 
 
     if (valor) {
@@ -1533,9 +1682,9 @@
     'pointermove',
     (e) => {
 
-      ratonX = e.clientX;
+      ratonX = e.pageX;
 
-      ratonY = e.clientY;
+      ratonY = e.pageY;
 
       ratonVisto = true;
     }
@@ -1569,17 +1718,28 @@
   );
 
 
-  // ───────── Resize ─────────
+  // ───────── Resize / cambios de altura de la página ─────────
 
-  window.addEventListener(
-    'resize',
-    () => {
+  function alCambiarTamano() {
 
-      gx = limitar(gx, 0, window.innerWidth - ANCHO);
+    if (!activo) return;
 
-      gy = limitar(gy, 0, window.innerHeight - ALTO);
-    }
-  );
+    medirPagina();
+
+    gx = limitar(gx, 0, anchoPag - ANCHO);
+
+    gy = limitar(gy, 0, altoPag - ALTO);
+  }
+
+
+  window.addEventListener('resize', alCambiarTamano);
+
+  window.addEventListener('load', alCambiarTamano);
+
+
+  // Por si el contenido de la página crece o se encoge después
+
+  setInterval(alCambiarTamano, 2000);
 
 
   // ───────── Rayos ─────────
@@ -1860,6 +2020,14 @@
 
 
   proximoParpadeo = performance.now() + 4000;
+
+
+  proximaDesaparicion =
+    performance.now() +
+    aleatorioEntre(
+      DESAPARECE_CADA_MIN_S,
+      DESAPARECE_CADA_MAX_S
+    ) * 1000;
 
 
   activar(true);
